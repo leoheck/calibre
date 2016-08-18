@@ -224,7 +224,7 @@ class ToolBar(QToolBar):  # {{{
         if data.hasFormat(mime):
             paths = [unicode(u.toLocalFile()) for u in data.urls()]
             if paths:
-                self.gui.iactions['Add Books'].add_books_from_device(
+                self.gui.iactions['XBOOKX'].add_books_from_device(
                         self.gui.current_view(), paths=paths)
                 event.accept()
                 return

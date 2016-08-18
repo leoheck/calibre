@@ -221,7 +221,7 @@ class GuiRunner(QObject):
         if DEBUG:
             prints('Started up in %.2f seconds'%(time.time() -
                 self.startup_time), 'with', len(db.data), 'books')
-        add_filesystem_book = partial(main.iactions['Add Books'].add_filesystem_book, allow_device=False)
+        add_filesystem_book = partial(main.iactions['XBOOKX'].add_filesystem_book, allow_device=False)
         main.set_exception_handler()
         if len(self.args) > 1:
             files = [os.path.abspath(p) for p in self.args[1:] if not

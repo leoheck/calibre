@@ -791,7 +791,7 @@ plugins += [GoogleBooks, GoogleImages, Amazon, Edelweiss, OpenLibrary, ISBNDB, O
 # Interface Actions {{{
 
 class ActionAdd(InterfaceActionBase):
-    name = 'Add Books'
+    name = 'XBOOKX'
     actual_plugin = 'calibre.gui2.actions.add:AddAction'
     description = _('Add books to calibre or the connected device')
 

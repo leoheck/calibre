@@ -24,5 +24,5 @@ class AddToLibraryAction(InterfaceAction):
         self.qaction.setEnabled(enabled)
 
     def add_books_to_library(self, *args):
-        self.gui.iactions['Add Books'].add_books_from_device(
+        self.gui.iactions['XBOOKX'].add_books_from_device(
                 self.gui.current_view())

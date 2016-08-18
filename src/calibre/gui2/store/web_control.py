@@ -85,7 +85,7 @@ class NPWebView(QWebView):
                           'Adobe Digital Editions</a> (ADE).<p>ADE, in turn '
                           'will download the actual ebook, which will be a '
                           '.epub file. You can add this book to calibre '
-                          'using "Add Books" and selecting the file from '
+                          'using "XBOOKX" and selecting the file from '
                           'the ADE library folder.'),
                           'acsm_download', self):
                     return

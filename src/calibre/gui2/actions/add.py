@@ -46,7 +46,7 @@ def get_filters():
 
 class AddAction(InterfaceAction):
 
-    name = 'Add Books'
+    name = 'XBOOKX'
     action_spec = (_('Add books'), 'add_book.png',
             _('Add books to the calibre library/device from files on your computer')
             , _('A'))

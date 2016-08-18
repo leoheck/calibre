@@ -35,12 +35,12 @@ defs = gprefs.defaults
 
 native_menubar_defaults = {
     'action-layout-menubar': (
-        'Add Books', 'Edit Metadata', 'Convert Books',
+        'XBOOKX', 'Edit Metadata', 'Convert Books',
         'Choose Library', 'Save To Disk', 'Preferences',
         'Help',
         ),
     'action-layout-menubar-device': (
-        'Add Books', 'Edit Metadata', 'Convert Books',
+        'XBOOKX', 'Edit Metadata', 'Convert Books',
         'Location Manager', 'Send To Device',
         'Save To Disk', 'Preferences', 'Help',
         )
@@ -50,12 +50,12 @@ if isosx:
     defs['action-layout-menubar'] = native_menubar_defaults['action-layout-menubar']
     defs['action-layout-menubar-device'] = native_menubar_defaults['action-layout-menubar-device']
     defs['action-layout-toolbar'] = (
-        'Add Books', 'Edit Metadata', None, 'Convert Books', 'View', None,
+        'XBOOKX', 'Edit Metadata', None, 'Convert Books', 'View', None,
         'Choose Library', 'Donate', None, 'Fetch News', 'Store', 'Save To Disk',
         'Connect Share', None, 'Remove Books', 'Tweak ePub'
         )
     defs['action-layout-toolbar-device'] = (
-        'Add Books', 'Edit Metadata', None, 'Convert Books', 'View',
+        'XBOOKX', 'Edit Metadata', None, 'Convert Books', 'View',
         'Send To Device', None, None, 'Location Manager', None, None,
         'Fetch News', 'Store', 'Save To Disk', 'Connect Share', None,
         'Remove Books',
@@ -64,13 +64,13 @@ else:
     defs['action-layout-menubar'] = ()
     defs['action-layout-menubar-device'] = ()
     defs['action-layout-toolbar'] = (
-        'Add Books', 'Edit Metadata', None, 'Convert Books', 'View', None,
+        'XBOOKX', 'Edit Metadata', None, 'Convert Books', 'View', None,
         'Store', 'Donate', 'Fetch News', 'Help', None,
         'Remove Books', 'Choose Library', 'Save To Disk',
         'Connect Share', 'Tweak ePub', 'Preferences',
         )
     defs['action-layout-toolbar-device'] = (
-        'Add Books', 'Edit Metadata', None, 'Convert Books', 'View',
+        'XBOOKX', 'Edit Metadata', None, 'Convert Books', 'View',
         'Send To Device', None, None, 'Location Manager', None, None,
         'Fetch News', 'Save To Disk', 'Store', 'Connect Share', None,
         'Remove Books', None, 'Help', 'Preferences',
@@ -935,6 +935,7 @@ class Application(QApplication):
             # Prevent text copied to the clipboard from being lost on quit due to
             # Qt 5 bug: https://bugreports.qt-project.org/browse/QTBUG-41125
             self.aboutToQuit.connect(self.flush_clipboard)
+
 
     def flush_clipboard(self):
         try:
