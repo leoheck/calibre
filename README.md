@@ -13,7 +13,7 @@ For more information, see the [calibre About page](https://calibre-ebook.com/abo
 
 Screenshots
 -------------
-[Screenshots page](https://calibre-ebook.com/demo)
+https://github.com/leoheck/calibre/blob/master/misc/screenshot.png?raw=true
 
 Usage
 -------
