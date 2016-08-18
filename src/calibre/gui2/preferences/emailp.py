@@ -32,7 +32,7 @@ class EmailAccounts(QAbstractTableModel):  # {{{
         self.headers  = map(unicode, [_('Email'), _('Formats'), _('Subject'),
             _('Auto send'), _('Alias'), _('Auto send only tags')])
         self.default_font = QFont()
-        self.default_font.setBold(True)
+        self.default_font.setBold(False)
         self.default_font = (self.default_font)
         self.tooltips =[None] + list(map(unicode, map(textwrap.fill,
             [_('Formats to email. The first matching format will be sent.'),

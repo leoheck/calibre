@@ -110,7 +110,7 @@ class Category(QWidget):  # {{{
         self.label = QLabel(gui_name)
         self.sep = QFrame(self)
         self.bf = QFont()
-        self.bf.setBold(True)
+        self.bf.setBold(False)
         self.label.setFont(self.bf)
         self.sep.setFrameShape(QFrame.HLine)
         self._layout.addWidget(self.label)

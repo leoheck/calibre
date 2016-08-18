@@ -271,7 +271,7 @@ class Main(MainWindow):
         la.base_template = unicode(la.text())
         self.status_bar.addWidget(la)
         f = self.status_bar.font()
-        f.setBold(True)
+        f.setBold(False)
         self.status_bar.setFont(f)
 
         self.boss(self)

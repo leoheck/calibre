@@ -93,7 +93,7 @@ class BlockingJob(QWidget):
         p = QPainter(self)
         p.setClipRect(br)
         f = p.font()
-        f.setBold(True)
+        f.setBold(False)
         f.setPointSize(20)
         p.setFont(f)
         p.setPen(Qt.SolidLine)

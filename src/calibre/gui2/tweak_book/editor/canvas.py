@@ -577,7 +577,7 @@ class Canvas(QWidget):
     def draw_image_error(self, painter):
         font = painter.font()
         font.setPointSize(3 * font.pointSize())
-        font.setBold(True)
+        font.setBold(False)
         painter.setFont(font)
         painter.setPen(QColor(Qt.black))
         painter.drawText(self.rect(), Qt.AlignCenter, _('Not a valid image'))

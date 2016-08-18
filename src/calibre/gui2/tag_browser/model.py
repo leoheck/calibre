@@ -32,7 +32,7 @@ def bf():
     global _bf
     if _bf is None:
         _bf = QFont()
-        _bf.setBold(True)
+        _bf.setBold(False)
         _bf = (_bf)
     return _bf
 

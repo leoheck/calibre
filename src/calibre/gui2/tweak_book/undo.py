@@ -47,7 +47,7 @@ class GlobalUndoHistory(QAbstractListModel):
             return self.label_for_row(index.row())
         if role == Qt.FontRole and index.row() == self.pos:
             f = QApplication.instance().font()
-            f.setBold(True)
+            f.setBold(False)
             return f
         if role == Qt.UserRole:
             return self.states[index.row()]

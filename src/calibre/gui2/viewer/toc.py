@@ -151,7 +151,7 @@ class TOCItem(QStandardItem):
         self.fragment = toc.fragment
         all_items.append(self)
         self.emphasis_font = QFont(self.font())
-        self.emphasis_font.setBold(True), self.emphasis_font.setItalic(True)
+        self.emphasis_font.setBold(False), self.emphasis_font.setItalic(True)
         self.normal_font = self.font()
         for t in toc:
             self.appendRow(TOCItem(spine, t, depth+1, all_items, parent=self))

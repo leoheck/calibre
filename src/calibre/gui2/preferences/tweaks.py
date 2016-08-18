@@ -128,7 +128,7 @@ class Tweaks(QAbstractListModel, AdaptSQP):  # {{{
             return textwrap.fill(tweak.name, 40)
         if role == Qt.FontRole and tweak.is_customized:
             ans = QFont()
-            ans.setBold(True)
+            ans.setBold(False)
             return ans
         if role == Qt.ToolTipRole:
             tt = _('This tweak has it default value')

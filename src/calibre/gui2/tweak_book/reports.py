@@ -858,7 +858,7 @@ class CSSRulesModel(QAbstractItemModel):
         self.num_unused = 0
         self.build_maps()
         self.main_font = f = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        f.setBold(True), f.setPointSize(parent.font().pointSize() + 2)
+        f.setBold(False), f.setPointSize(parent.font().pointSize() + 2)
         self.italic_font = f = QFont(parent.font())
         f.setItalic(True)
 

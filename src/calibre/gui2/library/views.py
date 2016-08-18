@@ -34,7 +34,7 @@ class HeaderView(QHeaderView):  # {{{
         QHeaderView.__init__(self, *args)
         self.hover = -1
         self.current_font = QFont(self.font())
-        self.current_font.setBold(True)
+        self.current_font.setBold(False)
         self.current_font.setItalic(True)
         self.fm = QFontMetrics(self.current_font)
 

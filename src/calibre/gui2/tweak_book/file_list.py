@@ -250,7 +250,7 @@ class FileList(QTreeWidget):
     def mark_item_as_current(self, item):
         font = QFont(self.font())
         font.setItalic(True)
-        font.setBold(True)
+        font.setBold(False)
         item.setData(0, Qt.FontRole, font)
 
     def clear_currently_edited_name(self):
@@ -274,7 +274,7 @@ class FileList(QTreeWidget):
             i.setText(0, text)
             i.setData(0, Qt.DecorationRole, self.top_level_pixmap_cache[category])
             f = i.font(0)
-            f.setBold(True)
+            f.setBold(False)
             i.setFont(0, f)
             i.setData(0, NAME_ROLE, category)
             flags = Qt.ItemIsEnabled

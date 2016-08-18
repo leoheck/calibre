@@ -216,7 +216,7 @@ class StatusBar(QStatusBar):  # {{{
         self.addPermanentWidget(self.update_label)
         self.update_label.setVisible(False)
         self._font = QFont()
-        self._font.setBold(True)
+        self._font.setBold(False)
         self.setFont(self._font)
         self.defmsg = QLabel('')
         self.defmsg.setFont(self._font)

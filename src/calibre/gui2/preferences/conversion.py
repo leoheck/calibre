@@ -46,7 +46,7 @@ class ListView(QListView):
         QListView.__init__(self, parent)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Expanding)
         f = self.font()
-        f.setBold(True)
+        f.setBold(False)
         self.setFont(f)
         self.setIconSize(QSize(48, 48))
         self.setFlow(self.TopToBottom)

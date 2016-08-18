@@ -42,7 +42,7 @@ class Heading(QWidget):  # {{{
             f = self.parent().font()
         except AttributeError:
             return
-        f.setBold(True)
+        f.setBold(False)
         self.setFont(f)
 
     def mousePressEvent(self, ev):

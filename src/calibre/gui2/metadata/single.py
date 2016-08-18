@@ -272,7 +272,7 @@ class MetadataSingleDialogBase(QDialog):
         self.fetch_metadata_button.setMenu(m)
         self.download_shortcut.activated.connect(self.fetch_metadata_button.click)
         font = self.fmb_font = QFont()
-        font.setBold(True)
+        font.setBold(False)
         self.fetch_metadata_button.setFont(font)
 
         if self.use_toolbutton_for_config_metadata:

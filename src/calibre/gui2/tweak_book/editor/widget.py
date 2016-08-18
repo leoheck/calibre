@@ -38,7 +38,7 @@ def create_icon(text, palette=None, sz=None, divider=2, fill='white'):
     if fill is not None:
         qDrawShadeRect(p, img.rect(), palette, fill=fill, lineWidth=1, midLineWidth=1)
     f = p.font()
-    f.setFamily('Liberation Sans'), f.setPixelSize(int(sz // divider)), f.setBold(True)
+    f.setFamily('Liberation Sans'), f.setPixelSize(int(sz // divider)), f.setBold(False)
     p.setFont(f), p.setPen(Qt.black)
     p.drawText(img.rect().adjusted(2, 2, -2, -2), Qt.AlignCenter, text)
     p.end()
@@ -515,7 +515,7 @@ class Editor(QMainWindow):
                     for suggestion in suggestions:
                         ac = m.addAction(suggestion, partial(self.editor.simple_replace, suggestion, cursor=spell_cursor))
                         f = ac.font()
-                        f.setBold(True), ac.setFont(f)
+                        f.setBold(False), ac.setFont(f)
                     m.addSeparator()
                 m.addAction(actions['spell-next'])
                 m.addAction(_('Ignore this word'), partial(self._nuke_word, None, word, locale))

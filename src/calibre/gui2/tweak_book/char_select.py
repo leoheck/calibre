@@ -401,7 +401,7 @@ class CategoryModel(QAbstractItemModel):
                 self.starts.append(start)
         self.starts.sort()
         self.bold_font = f = QApplication.font()
-        f.setBold(True)
+        f.setBold(False)
         self.fav_icon = QIcon(I('rating.png'))
 
     def columnCount(self, parent=ROOT):

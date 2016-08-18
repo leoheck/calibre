@@ -116,7 +116,7 @@ class TextBrowser(PlainTextEdit):  # {{{
         self.setTabStopWidth(tprefs['editor_tab_stop_width'] * self.space_width)
         font = self.heading_font = QFont(self.font())
         font.setPointSize(int(tprefs['editor_font_size'] * 1.5))
-        font.setBold(True)
+        font.setBold(False)
         theme = get_theme(tprefs['editor_theme'])
         pal = self.palette()
         pal.setColor(pal.Base, theme_color(theme, 'Normal', 'bg'))
@@ -308,7 +308,7 @@ class TextBrowser(PlainTextEdit):  # {{{
                 if is_start:
                     painter.save()
                     f = QFont(self.font())
-                    f.setBold(True)
+                    f.setBold(False)
                     painter.setFont(f)
                     painter.setPen(self.line_number_palette.color(QPalette.BrightText))
                 if text == '-':

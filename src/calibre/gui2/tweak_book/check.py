@@ -47,7 +47,7 @@ class Delegate(QStyledItemDelegate):
     def initStyleOption(self, option, index):
         super(Delegate, self).initStyleOption(option, index)
         if index.row() == self.parent().currentRow():
-            option.font.setBold(True)
+            option.font.setBold(False)
             option.backgroundBrush = self.parent().palette().brush(QPalette.AlternateBase)
 
 class Check(QSplitter):

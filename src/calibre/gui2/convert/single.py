@@ -82,7 +82,7 @@ class GroupModel(QAbstractListModel):
             return (widget.config_icon())
         if role == Qt.FontRole:
             f = QFont()
-            f.setBold(True)
+            f.setBold(False)
             return (f)
         return None
 

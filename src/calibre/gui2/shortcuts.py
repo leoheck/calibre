@@ -101,7 +101,7 @@ class Customize(QFrame):
         button.setText(_('Press a key...'))
         button.setFocus(Qt.OtherFocusReason)
         font = QFont()
-        font.setBold(True)
+        font.setBold(False)
         button.setFont(font)
 
     def key_press_event(self, ev, which=0):

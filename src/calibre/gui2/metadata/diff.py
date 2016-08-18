@@ -365,7 +365,7 @@ class CoverView(QWidget):
         if self.pixmap is not None and not self.pixmap.isNull():
             sztgt = target.adjusted(0, 0, 0, -4)
             f = p.font()
-            f.setBold(True)
+            f.setBold(False)
             p.setFont(f)
             sz = u'\u00a0%d x %d\u00a0'%(self.pixmap.width(), self.pixmap.height())
             flags = Qt.AlignBottom|Qt.AlignRight|Qt.TextSingleLine
@@ -389,7 +389,7 @@ class CompareSingle(QWidget):
         revert_tooltip = revert_tooltip or _('Revert %s')
         self.current_mi = None
         self.changed_font = QFont(QApplication.font())
-        self.changed_font.setBold(True)
+        self.changed_font.setBold(False)
         self.changed_font.setItalic(True)
         self.blank_as_equal = blank_as_equal
 

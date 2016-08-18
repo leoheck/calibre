@@ -92,7 +92,7 @@ class DuplicatesQuestion(QDialog):
     def process_duplicates(self, db, duplicates):
         ta = _('%(title)s by %(author)s [%(formats)s]')
         bf = QFont(self.dup_list.font())
-        bf.setBold(True)
+        bf.setBold(False)
         itf = QFont(self.dup_list.font())
         itf.setItalic(True)
 

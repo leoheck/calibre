@@ -358,7 +358,7 @@ class ImageView(QWidget, ImageDropMixin):  # {{{
         if self.show_size:
             sztgt = target.adjusted(0, 0, 0, -4)
             f = p.font()
-            f.setBold(True)
+            f.setBold(False)
             p.setFont(f)
             sz = u'\u00a0%d x %d\u00a0'%(ow, oh)
             flags = Qt.AlignBottom|Qt.AlignRight|Qt.TextSingleLine

@@ -131,7 +131,7 @@ class ProceedQuestion(QWidget):
         self.bb.button(self.bb.Yes).setDefault(True)
         self.title_label = title = QLabel('A dummy title')
         f = title.font()
-        f.setBold(True)
+        f.setBold(False)
         title.setFont(f)
 
         self.checkbox = QCheckBox('', self)

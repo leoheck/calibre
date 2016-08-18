@@ -176,7 +176,7 @@ class ManageUserDictionaries(Dialog):
 
         self.dictionaries = d = QListWidget(self)
         self.emph_font = f = QFont(self.font())
-        f.setBold(True)
+        f.setBold(False)
         self.build_dictionaries()
         d.currentItemChanged.connect(self.show_current_dictionary)
         h.addWidget(d)
@@ -468,7 +468,7 @@ class ManageDictionaries(Dialog):  # {{{
             for locale in d.locales | {d.primary_locale}:
                 languages[locale.langcode][locale.countrycode].add(d)
         bf = QFont(self.dictionaries.font())
-        bf.setBold(True)
+        bf.setBold(False)
         itf = QFont(self.dictionaries.font())
         itf.setItalic(True)
         self.dictionaries.clear()
@@ -548,7 +548,7 @@ class ManageDictionaries(Dialog):  # {{{
     def set_preferred_country(self):
         item = self.dictionaries.currentItem()
         bf = QFont(self.dictionaries.font())
-        bf.setBold(True)
+        bf.setBold(False)
         for x in (item.parent().child(i) for i in xrange(item.parent().childCount())):
             x.setData(0, Qt.FontRole, bf if x is item else None)
         lc = unicode(item.parent().data(0, Qt.UserRole))

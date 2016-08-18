@@ -712,7 +712,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
         font = QFont()
         if restrictions:
             restrictions = ' :: ' + restrictions
-            font.setBold(True)
+            font.setBold(False)
             font.setItalic(True)
         self.virtual_library.setFont(font)
         title = u'{0} - || {1}{2} ||'.format(

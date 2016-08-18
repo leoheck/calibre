@@ -562,7 +562,7 @@ class TextEdit(PlainTextEdit):
                     painter.save()
                     painter.setPen(self.line_number_palette.color(QPalette.BrightText))
                     f = QFont(self.font())
-                    f.setBold(True)
+                    f.setBold(False)
                     painter.setFont(f)
                     self.last_current_lnum = (top, bottom - top)
                 painter.drawText(0, top, self.line_number_area.width() - 5, self.fontMetrics().height(),

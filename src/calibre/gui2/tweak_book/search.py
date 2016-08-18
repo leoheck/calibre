@@ -137,7 +137,7 @@ class WhereBox(QComboBox):
         self.ofont = QFont(self.font())
         if emphasize:
             f = self.emph_font = QFont(self.ofont)
-            f.setBold(True), f.setItalic(True)
+            f.setBold(False), f.setItalic(True)
             self.setFont(f)
 
     @dynamic_property

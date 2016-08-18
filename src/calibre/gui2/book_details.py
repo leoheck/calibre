@@ -294,7 +294,7 @@ class CoverView(QWidget):  # {{{
         if gprefs['bd_overlay_cover_size']:
             sztgt = target.adjusted(0, 0, 0, -4)
             f = p.font()
-            f.setBold(True)
+            f.setBold(False)
             p.setFont(f)
             sz = u'\u00a0%d x %d\u00a0'%(self.pixmap.width(), self.pixmap.height())
             flags = Qt.AlignBottom|Qt.AlignRight|Qt.TextSingleLine
