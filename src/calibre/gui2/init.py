@@ -254,10 +254,10 @@ class StatusBar(QStatusBar):  # {{{
         if self.device_string:
             msg += ' ..::.. ' + self.device_string
         else:
-            msg += _(', %(created)s %(name)s') % dict(created=_('mod by'), name='Leandro Heck')
+            msg += "Leandro Heck mod"
 
         if self.total != self.current:
-            base = _('%(num)d of %(total)d books') % dict(num=self.current, total=self.total)
+            base = ('%(num)d of %(total)d books') % dict(num=self.current, total=self.total)
         else:
             base = ngettext('one book', '{} books', self.total).format(self.total)
         if self.selected > 0:
