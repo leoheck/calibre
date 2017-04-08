@@ -1,57 +1,72 @@
 #!/usr/bin/env python2
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:fdm=marker:ai
-from __future__ import (unicode_literals, division, absolute_import,
-                        print_function)
+# License: GPLv3 Copyright: 2013, Kovid Goyal <kovid at kovidgoyal.net>
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-__license__   = 'GPL v3'
-__copyright__ = '2013, Kovid Goyal <kovid at kovidgoyal.net>'
-__docformat__ = 'restructuredtext en'
-
-import os, logging, sys, hashlib, uuid, re, shutil, unicodedata, errno, time
+import errno
+import hashlib
+import logging
+import os
+import re
+import shutil
+import sys
+import time
+import unicodedata
+import uuid
 from collections import defaultdict
-from io import BytesIO
-from urlparse import urlparse
 from future_builtins import zip
+from io import BytesIO
+from itertools import count
+from urlparse import urlparse
 
+from cssutils import getUrls, replaceUrls
 from lxml import etree
-from cssutils import replaceUrls, getUrls
 
 from calibre import CurrentDir
 from calibre.constants import iswindows
-from calibre.customize.ui import (plugin_for_input_format, plugin_for_output_format)
+from calibre.customize.ui import plugin_for_input_format, plugin_for_output_format
 from calibre.ebooks import escape_xpath_attr
 from calibre.ebooks.chardet import xml_to_unicode
 from calibre.ebooks.conversion.plugins.epub_input import (
-    ADOBE_OBFUSCATION, IDPF_OBFUSCATION, decrypt_font_data)
-from calibre.ebooks.conversion.preprocess import HTMLPreProcessor, CSSPreProcessor as cssp
-from calibre.ebooks.metadata.opf3 import read_prefixes, items_with_property, ensure_prefix, CALIBRE_PREFIX
+    ADOBE_OBFUSCATION, IDPF_OBFUSCATION, decrypt_font_data
+)
+from calibre.ebooks.conversion.preprocess import (
+    CSSPreProcessor as cssp, HTMLPreProcessor
+)
+from calibre.ebooks.metadata.opf3 import (
+    CALIBRE_PREFIX, ensure_prefix, items_with_property, read_prefixes
+)
 from calibre.ebooks.metadata.utils import parse_opf_version
 from calibre.ebooks.mobi import MobiError
 from calibre.ebooks.mobi.reader.headers import MetadataHeader
 from calibre.ebooks.mobi.tweak import set_cover
 from calibre.ebooks.oeb.base import (
-    serialize, OEB_DOCS, OEB_STYLES, OPF2_NS, DC11_NS, OPF, Manifest,
-    rewrite_links, iterlinks, itercsslinks, urlquote, urlunquote)
-from calibre.ebooks.oeb.polish.errors import InvalidBook, DRMError
+    DC11_NS, OEB_DOCS, OEB_STYLES, OPF, OPF2_NS, Manifest, itercsslinks, iterlinks,
+    rewrite_links, serialize, urlquote, urlunquote
+)
+from calibre.ebooks.oeb.parse_utils import RECOVER_PARSER, NotHTML, parse_html
+from calibre.ebooks.oeb.polish.errors import DRMError, InvalidBook
 from calibre.ebooks.oeb.polish.parsing import parse as parse_html_tweak
-from calibre.ebooks.oeb.polish.utils import PositionFinder, CommentFinder, guess_type, parse_css
-from calibre.ebooks.oeb.parse_utils import NotHTML, parse_html, RECOVER_PARSER
+from calibre.ebooks.oeb.polish.utils import (
+    CommentFinder, PositionFinder, guess_type, parse_css
+)
 from calibre.ptempfile import PersistentTemporaryDirectory, PersistentTemporaryFile
-from calibre.utils.filenames import nlinks_file, hardlink_file
-from calibre.utils.ipc.simple_worker import fork_job, WorkerError
+from calibre.utils.filenames import hardlink_file, nlinks_file
+from calibre.utils.ipc.simple_worker import WorkerError, fork_job
 from calibre.utils.logging import default_log
 from calibre.utils.zipfile import ZipFile
 
 exists, join, relpath = os.path.exists, os.path.join, os.path.relpath
 
-
 OEB_FONTS = {guess_type('a.ttf'), guess_type('b.otf'), guess_type('a.woff'), 'application/x-font-ttf', 'application/x-font-otf', 'application/font-sfnt'}
 OPF_NAMESPACES = {'opf':OPF2_NS, 'dc':DC11_NS}
+
 
 class CSSPreProcessor(cssp):
 
     def __call__(self, data):
         return self.MS_PAT.sub(self.ms_sub, data)
+
 
 def clone_dir(src, dest):
     ' Clone a directory using hard links for the files, dest must already exist '
@@ -67,6 +82,7 @@ def clone_dir(src, dest):
             except:
                 shutil.copy2(spath, dpath)
 
+
 def clone_container(container, dest_dir):
     ' Efficiently clone a container using hard links '
     dest_dir = os.path.abspath(os.path.realpath(dest_dir))
@@ -76,11 +92,14 @@ def clone_container(container, dest_dir):
         return cls(None, None, container.log, clone_data=clone_data)
     return cls(None, container.log, clone_data=clone_data)
 
+
 def name_to_abspath(name, root):
     return os.path.abspath(join(root, *name.split('/')))
 
+
 def abspath_to_name(path, root):
     return relpath(os.path.abspath(path), root).replace(os.sep, '/')
+
 
 def name_to_href(name, root, base=None, quote=urlquote):
     fullpath = name_to_abspath(name, root)
@@ -88,19 +107,23 @@ def name_to_href(name, root, base=None, quote=urlquote):
     path = relpath(fullpath, basepath).replace(os.sep, '/')
     return quote(path)
 
+
 def href_to_name(href, root, base=None):
     base = root if base is None else os.path.dirname(name_to_abspath(base, root))
-    purl = urlparse(href)
+    try:
+        purl = urlparse(href)
+    except ValueError:
+        return None
     if purl.scheme or not purl.path:
         return None
     href = urlunquote(purl.path)
-    if href.startswith('/') or (len(href) > 1 and href[1] == ':' and 'a' <= href[0].lower() <= 'z'):
-        # For paths that start with drive letter os.path.join(base, href)
-        # will discard base and return href on windows, so we assume that
-        # such paths are also absolute paths, on all platforms.
+    if iswindows and ':' in href:
+        # path manipulations on windows fail for paths with : in them, so we
+        # assume all such paths are invalid/absolute paths.
         return None
     fullpath = os.path.join(base, *href.split('/'))
     return abspath_to_name(fullpath, root)
+
 
 class ContainerBase(object):  # {{{
     '''
@@ -189,6 +212,7 @@ class ContainerBase(object):  # {{{
         return parse_css(data, fname=fname, is_declaration=is_declaration, decode=self.decode, log_level=logging.WARNING,
                          css_preprocessor=(None if self.tweak_mode else self.css_preprocessor))
 # }}}
+
 
 class Container(ContainerBase):  # {{{
 
@@ -305,9 +329,19 @@ class Container(ContainerBase):  # {{{
 
     def manifest_has_name(self, name):
         ''' Return True if the manifest has an entry corresponding to name '''
-        href = self.name_to_href(name, self.opf_name)
-        all_hrefs = {x.get('href') for x in self.opf_xpath('//opf:manifest/opf:item[@href]')}
-        return href in all_hrefs
+        all_names = {self.href_to_name(x.get('href'), self.opf_name) for x in self.opf_xpath('//opf:manifest/opf:item[@href]')}
+        return name in all_names
+
+    def make_name_unique(self, name):
+        ''' Ensure that `name` does not already exist in this book. If it does, return a modified version that does not exist. '''
+        counter = count()
+        while self.has_name_case_insensitive(name) or self.manifest_has_name(name):
+            c = next(counter) + 1
+            base, ext = name.rpartition('.')[::2]
+            if c > 1:
+                base = base.rpartition('-')[0]
+            name = '%s-%d.%s' % (base, c, ext)
+        return name
 
     def add_file(self, name, data, media_type=None, spine_index=None, modify_name_if_needed=False, process_manifest_item=None):
         ''' Add a file to this container. Entries for the file are
@@ -315,27 +349,22 @@ class Container(ContainerBase):  # {{{
         (if the file is a text document) '''
         if '..' in name:
             raise ValueError('Names are not allowed to have .. in them')
-        all_hrefs = {x.get('href') for x in self.opf_xpath('//opf:manifest/opf:item[@href]')}
         href = self.name_to_href(name, self.opf_name)
-        if self.has_name(name) or href in all_hrefs:
+        if self.has_name_case_insensitive(name) or self.manifest_has_name(name):
             if not modify_name_if_needed:
-                raise ValueError(('A file with the name %s already exists' % name) if self.has_name(name) else
+                raise ValueError(('A file with the name %s already exists' % name) if self.has_name_case_insensitive(name) else
                                  ('An item with the href %s already exists in the manifest' % href))
-            base, ext = name.rpartition('.')[::2]
-            c = 0
-            while True:
-                c += 1
-                q = '%s-%d.%s' % (base, c, ext)
-                href = self.name_to_href(q, self.opf_name)
-                if not self.has_name(q) and href not in all_hrefs:
-                    name = q
-                    break
+            name = self.make_name_unique(name)
+            href = self.name_to_href(name, self.opf_name)
         path = self.name_to_abspath(name)
         base = os.path.dirname(path)
         if not os.path.exists(base):
             os.makedirs(base)
         with lopen(path, 'wb') as f:
-            f.write(data)
+            if hasattr(data, 'read'):
+                shutil.copyfileobj(data, f)
+            else:
+                f.write(data)
         mt = media_type or self.guess_type(name)
         self.name_path_map[name] = path
         self.mime_map[name] = mt
@@ -469,7 +498,7 @@ class Container(ContainerBase):  # {{{
         return name_to_abspath(name, self.root)
 
     def exists(self, name):
-        ''' True iff a file corresponding to the canonical name exists. Note
+        ''' True iff a file/directory corresponding to the canonical name exists. Note
         that this function suffers from the limitations of the underlying OS
         filesystem, in particular case (in)sensitivity. So on a case
         insensitive filesystem this will return True even if the case of name
@@ -495,6 +524,15 @@ class Container(ContainerBase):  # {{{
     def has_name(self, name):
         ''' Return True iff a file with the same canonical name as that specified exists. Unlike :meth:`exists` this method is always case-sensitive. '''
         return name and name in self.name_path_map
+
+    def has_name_case_insensitive(self, name):
+        if not name:
+            return False
+        name = name.lower()
+        for q in self.name_path_map:
+            if q.lower() == name:
+                return True
+        return False
 
     def relpath(self, path, base=None):
         '''Convert an absolute path (with os separators) to a path relative to
@@ -850,6 +888,8 @@ class Container(ContainerBase):  # {{{
         generated item.'''
         id_prefix = id_prefix or 'id'
         media_type = media_type or guess_type(name)
+        if unique_href:
+            name = self.make_name_unique(name)
         href = self.name_to_href(name, self.opf_name)
         base, ext = href.rpartition('.')[0::2]
         all_ids = {x.get('id') for x in self.opf_xpath('//*[@id]')}
@@ -858,17 +898,7 @@ class Container(ContainerBase):  # {{{
         while item_id in all_ids:
             c += 1
             item_id = id_prefix + '%d'%c
-        all_names = {x.get('href') for x in self.opf_xpath(
-                '//opf:manifest/opf:item[@href]')}
 
-        def exists(h):
-            return self.exists(self.href_to_name(h, self.opf_name))
-
-        if unique_href:
-            c = 0
-            while href in all_names or exists(href):
-                c += 1
-                href = '%s_%d.%s'%(base, c, ext)
         manifest = self.opf_xpath('//opf:manifest')[0]
         item = manifest.makeelement(OPF('item'),
                                     id=item_id, href=href)
@@ -985,6 +1015,7 @@ class Container(ContainerBase):  # {{{
     def commit(self, outpath=None, keep_parsed=False):
         '''
         Commit all dirtied parsed objects to the filesystem and write out the ebook file at outpath.
+
         :param output: The path to write the saved ebook file to. If None, the path of the original book file is used.
         :param keep_parsed: If True the parsed representations of committed items are kept in the cache.
         '''
@@ -1004,15 +1035,20 @@ class Container(ContainerBase):  # {{{
 # }}}
 
 # EPUB {{{
+
+
 class InvalidEpub(InvalidBook):
     pass
+
 
 class ObfuscationKeyMissing(InvalidEpub):
     pass
 
+
 OCF_NS = 'urn:oasis:names:tc:opendocument:xmlns:container'
 VCS_IGNORE_FILES = frozenset('.gitignore .hgignore .agignore .bzrignore'.split())
 VCS_DIRS = frozenset(('.git', '.hg', '.svn', '.bzr'))
+
 
 def walk_dir(basedir):
     for dirpath, dirnames, filenames in os.walk(basedir):
@@ -1026,6 +1062,7 @@ def walk_dir(basedir):
         for fname in filenames:
             if fname not in VCS_IGNORE_FILES:
                 yield is_root, dirpath, fname
+
 
 class EpubContainer(Container):
 
@@ -1277,6 +1314,7 @@ class EpubContainer(Container):
     def path_to_ebook(self):
         def fget(self):
             return self.pathtoepub
+
         def fset(self, val):
             self.pathtoepub = val
         return property(fget=fget, fset=fset)
@@ -1284,8 +1322,11 @@ class EpubContainer(Container):
 # }}}
 
 # AZW3 {{{
+
+
 class InvalidMobi(InvalidBook):
     pass
+
 
 def do_explode(path, dest):
     from calibre.ebooks.mobi.reader.mobi6 import MobiReader
@@ -1323,10 +1364,12 @@ def opf_to_azw3(opf, outpath, container):
     set_cover(oeb)
     outp.convert(oeb, outpath, inp, plumber.opts, container.log)
 
+
 def epub_to_azw3(epub, outpath=None):
     container = get_container(epub, tweak_mode=True)
     outpath = outpath or (epub.rpartition('.')[0] + '.azw3')
     opf_to_azw3(container.name_to_abspath(container.opf_name), outpath, container)
+
 
 class AZW3Container(Container):
 
@@ -1398,6 +1441,7 @@ class AZW3Container(Container):
     def path_to_ebook(self):
         def fget(self):
             return self.pathtoazw3
+
         def fset(self, val):
             self.pathtoazw3 = val
         return property(fget=fget, fset=fset)
@@ -1406,6 +1450,7 @@ class AZW3Container(Container):
     def names_that_must_not_be_changed(self):
         return set(self.name_path_map)
 # }}}
+
 
 def get_container(path, log=None, tdir=None, tweak_mode=False):
     if log is None:
@@ -1419,6 +1464,7 @@ def get_container(path, log=None, tdir=None, tweak_mode=False):
     ebook.tweak_mode = tweak_mode
     return ebook
 
+
 def test_roundtrip():
     ebook = get_container(sys.argv[-1])
     p = PersistentTemporaryFile(suffix='.'+sys.argv[-1].rpartition('.')[-1])
@@ -1430,7 +1476,6 @@ def test_roundtrip():
     if diff is not None:
         print (diff)
 
+
 if __name__ == '__main__':
     test_roundtrip()
-
-

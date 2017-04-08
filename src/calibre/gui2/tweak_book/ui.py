@@ -48,8 +48,10 @@ from calibre.gui2.tweak_book.editor.insert_resource import InsertImage
 from calibre.utils.icu import character_name, sort_key
 from calibre.utils.localization import localize_user_manual_link
 
+
 def open_donate():
     open_url(QUrl('https://calibre-ebook.com/donate'))
+
 
 class Central(QStackedWidget):  # {{{
 
@@ -198,6 +200,7 @@ class Central(QStackedWidget):  # {{{
         return True
 # }}}
 
+
 class CursorPositionWidget(QWidget):  # {{{
 
     def __init__(self, parent):
@@ -226,6 +229,7 @@ class CursorPositionWidget(QWidget):  # {{{
                 text = name + ' : ' + text
             self.la.setText(text)
 # }}}
+
 
 class Main(MainWindow):
 
@@ -322,6 +326,7 @@ class Main(MainWindow):
                 sid, unicode(ac.text()).replace('&', ''), default_keys=keys, description=description, action=ac, group=group)
             self.addAction(ac)
             return ac
+
         def treg(icon, text, target, sid, keys, description):
             return reg(icon, text, target, sid, keys, description, toolbar_allowed=icon is not None)
 
@@ -396,6 +401,9 @@ class Main(MainWindow):
             'Compress images losslessly'))
         self.action_transform_styles = treg('wizard.png', _('Transform &styles'), self.boss.transform_styles, 'transform-styles', (), _(
             'Transform styles used in the book'))
+        self.action_get_ext_resources = treg('download-metadata.png', _('Download external &resources'),
+                                             self.boss.get_external_resources, 'get-external-resources', (), _(
+            'Download external resources in the book (images/stylesheets/etc/ that are not included in the book)'))
 
         def ereg(icon, text, target, sid, keys, description):
             return reg(icon, text, partial(self.boss.editor_action, target), sid, keys, description)
@@ -422,7 +430,7 @@ class Main(MainWindow):
         self.action_auto_sync_preview = reg('sync-right.png', _('Sync preview position to editor position'), None, 'sync-preview-to-editor', (), _(
             'Sync preview position to editor position'))
         self.action_reload_preview = reg('view-refresh.png', _('Refresh preview'), None, 'reload-preview', ('F5',), _('Refresh preview'))
-        self.action_split_in_preview = reg('auto_author_sort.png', _('Split this file'), None, 'split-in-preview', (), _(
+        self.action_split_in_preview = reg('document-split.png', _('Split this file'), None, 'split-in-preview', (), _(
             'Split file in the preview panel'))
         self.action_find_next_preview = reg('arrow-down.png', _('Find Next'), None, 'find-next-preview', (), _('Find next in preview'))
         self.action_find_prev_preview = reg('arrow-up.png', _('Find Previous'), None, 'find-prev-preview', (), _('Find previous in preview'))
@@ -430,6 +438,7 @@ class Main(MainWindow):
         # Search actions
         group = _('Search')
         self.action_find = treg('search.png', _('&Find/Replace'), self.boss.show_find, 'find-replace', ('Ctrl+F',), _('Show the Find/Replace panel'))
+
         def sreg(name, text, action, overrides={}, keys=(), description=None, icon=None):
             return reg(icon, text, partial(self.boss.search_action_triggered, action, overrides), name, keys, description or text.replace('&', ''))
         self.action_find_next = sreg('find-next', _('Find &Next'),
@@ -486,7 +495,7 @@ class Main(MainWindow):
             'view-image.png', _('&Browse images in book'), self.boss.browse_images, 'browse-images', (), _(
                 'Browse images in the books visually'))
         self.action_multiple_split = treg(
-            'auto_author_sort.png', _('&Split at multiple locations'), self.boss.multisplit, 'multisplit', (), _(
+            'document-split.png', _('&Split at multiple locations'), self.boss.multisplit, 'multisplit', (), _(
                 'Split HTML file at multiple locations'))
         self.action_compare_book = treg('diff.png', _('&Compare to another book'), self.boss.compare_book, 'compare-book', (), _(
             'Compare to another book'))
@@ -557,7 +566,9 @@ class Main(MainWindow):
         e.addAction(self.action_set_semantics)
         e.addAction(self.action_filter_css)
         e.addAction(self.action_spell_check_book)
-        e.addAction(self.action_check_external_links)
+        er = e.addMenu(_('External Links'))
+        er.addAction(self.action_check_external_links)
+        er.addAction(self.action_get_ext_resources)
         e.addAction(self.action_check_book)
         e.addAction(self.action_reports)
 
@@ -635,6 +646,7 @@ class Main(MainWindow):
 
     def populate_toolbars(self, animate=False):
         self.global_bar.clear(), self.tools_bar.clear(), self.plugins_bar.clear()
+
         def add(bar, ac):
             if ac is None:
                 bar.addSeparator()
@@ -677,7 +689,7 @@ class Main(MainWindow):
             setattr(self, oname.replace('-', '_'), d)
             return d
 
-        d = create(_('Files Browser'), 'files-browser')
+        d = create(_('File Browser'), 'files-browser')
         d.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.file_list = FileListWidget(d)
         d.setWidget(self.file_list)

@@ -24,6 +24,7 @@ MD_EXTENSIONS = {
     'wikilinks': _('Wiki style links'),
 }
 
+
 class TXTInput(InputFormatPlugin):
 
     name        = 'TXT Input'
@@ -55,7 +56,7 @@ class TXTInput(InputFormatPlugin):
                    'as chapter headings and italic text.\n'
                    '* textile: Processing using textile formatting.\n'
                    '* markdown: Processing using markdown formatting. '
-                   'To learn more about markdown see')+' http://daringfireball.net/projects/markdown/'),
+                   'To learn more about markdown see')+' https://daringfireball.net/projects/markdown/'),
         OptionRecommendation(name='preserve_spaces', recommended_value=False,
             help=_('Normally extra spaces are condensed into a single space. '
                 'With this option all spaces will be displayed.')),
@@ -65,7 +66,7 @@ class TXTInput(InputFormatPlugin):
         OptionRecommendation(name="markdown_extensions", recommended_value='footnotes, tables, toc',
             help=_('Enable extensions to markdown syntax. Extensions are formatting that is not part '
                    'of the standard markdown format. The extensions enabled by default: %default.\n'
-                   'To learn more about markdown extensions, see http://pythonhosted.org/Markdown/extensions/index.html\n'
+                   'To learn more about markdown extensions, see https://pythonhosted.org/Markdown/extensions/index.html\n'
                    'This should be a comma separated list of extensions to enable:\n') +
                              '\n'.join('* %s: %s' % (k, MD_EXTENSIONS[k]) for k in sorted(MD_EXTENSIONS))),
     ])
@@ -76,7 +77,7 @@ class TXTInput(InputFormatPlugin):
         from calibre.ebooks.chardet import detect
         from calibre.utils.zipfile import ZipFile
         from calibre.ebooks.txt.processor import (convert_basic,
-                convert_markdown, separate_paragraphs_single_line,
+                convert_markdown_with_metadata, separate_paragraphs_single_line,
                 separate_paragraphs_print_formatted, preserve_spaces,
                 detect_paragraph_type, detect_formatting_type,
                 normalize_line_endings, convert_textile, remove_indents,
@@ -109,7 +110,7 @@ class TXTInput(InputFormatPlugin):
             ienc = options.input_encoding
             log.debug('Using user specified input encoding of %s' % ienc)
         else:
-            det_encoding = detect(txt)
+            det_encoding = detect(txt[:4096])
             det_encoding, confidence = det_encoding['encoding'], det_encoding['confidence']
             if det_encoding and det_encoding.lower().replace('_', '-').strip() in (
                     'gb2312', 'chinese', 'csiso58gb231280', 'euc-cn', 'euccn',
@@ -194,13 +195,14 @@ class TXTInput(InputFormatPlugin):
 
         # Process the text using the appropriate text processor.
         html = ''
+        input_mi = None
         if options.formatting_type == 'markdown':
             log.debug('Running text through markdown conversion...')
             try:
-                html = convert_markdown(txt, extensions=[x.strip() for x in options.markdown_extensions.split(',') if x.strip()])
+                input_mi, html = convert_markdown_with_metadata(txt, extensions=[x.strip() for x in options.markdown_extensions.split(',') if x.strip()])
             except RuntimeError:
                 raise ValueError('This txt file has malformed markup, it cannot be'
-                    ' converted by calibre. See http://daringfireball.net/projects/markdown/syntax')
+                    ' converted by calibre. See https://daringfireball.net/projects/markdown/syntax')
         elif options.formatting_type == 'textile':
             log.debug('Running text through textile conversion...')
             html = convert_textile(txt)
@@ -235,11 +237,12 @@ class TXTInput(InputFormatPlugin):
         os.remove(htmlfile.name)
 
         # Set metadata from file.
-        from calibre.customize.ui import get_file_type_metadata
+        if input_mi is None:
+            from calibre.customize.ui import get_file_type_metadata
+            input_mi = get_file_type_metadata(stream, file_ext)
         from calibre.ebooks.oeb.transforms.metadata import meta_info_to_oeb_metadata
-        mi = get_file_type_metadata(stream, file_ext)
-        meta_info_to_oeb_metadata(mi, oeb.metadata, log)
-        self.html_postprocess_title = mi.title
+        meta_info_to_oeb_metadata(input_mi, oeb.metadata, log)
+        self.html_postprocess_title = input_mi.title
 
         return oeb
 
@@ -249,4 +252,3 @@ class TXTInput(InputFormatPlugin):
                 for title in item.data.xpath('//*[local-name()="title"]'):
                     if title.text == _('Unknown'):
                         title.text = self.html_postprocess_title
-

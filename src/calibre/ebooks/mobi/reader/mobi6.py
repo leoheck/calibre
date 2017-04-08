@@ -24,8 +24,19 @@ from calibre.ebooks.mobi.reader.headers import BookHeader
 from calibre.utils.img import save_cover_data_to
 from calibre.utils.imghdr import what
 
+
 class TopazError(ValueError):
     pass
+
+
+class KFXError(ValueError):
+
+    def __init__(self):
+        ValueError.__init__(self, _(
+            'This is an Amazon KFX book. It cannot be processed.'
+            ' See {} for information on how to handle KFX books.'
+        ).format('https://www.mobileread.com/forums/showthread.php?t=283371'))
+
 
 class MobiReader(object):
     PAGE_BREAK_PAT = re.compile(
@@ -69,6 +80,8 @@ class MobiReader(object):
         raw = stream.read()
         if raw.startswith('TPZ'):
             raise TopazError(_('This is an Amazon Topaz book. It cannot be processed.'))
+        if raw.startswith(b'\xeaDRMION\xee'):
+            raise KFXError()
 
         self.header   = raw[0:72]
         self.name     = self.header[:32].replace('\x00', '')
@@ -377,6 +390,7 @@ class MobiReader(object):
             'x-large': '5',
             'xx-large': '6',
             }
+
         def barename(x):
             return x.rpartition(':')[-1]
 
@@ -870,6 +884,7 @@ class MobiReader(object):
                 continue
             self.image_names.append(os.path.basename(path))
 
+
 def test_mbp_regex():
     for raw, m in {
         '<mbp:pagebreak></mbp:pagebreak>':'',
@@ -886,5 +901,3 @@ def test_mbp_regex():
         ans = MobiReader.PAGE_BREAK_PAT.sub(r'\1', raw)
         if ans != m:
             raise Exception('%r != %r for %r'%(ans, m, raw))
-
-

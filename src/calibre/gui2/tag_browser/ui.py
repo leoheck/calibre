@@ -23,10 +23,49 @@ from calibre.gui2.dialogs.tag_categories import TagCategories
 from calibre.gui2.dialogs.tag_list_editor import TagListEditor
 from calibre.gui2.dialogs.edit_authors_dialog import EditAuthorsDialog
 
+
 class TagBrowserMixin(object):  # {{{
 
     def __init__(self, *args, **kwargs):
         pass
+
+    def populate_tb_manage_menu(self, db):
+        from calibre.db.categories import find_categories
+        m = self.alter_tb.manage_menu
+        m.clear()
+        for text, func, args, cat_name in (
+             (_('Manage Authors'),
+                        self.do_author_sort_edit, (self, None), 'authors'),
+             (_('Manage Series'),
+                        self.do_tags_list_edit, (None, 'series'), 'series'),
+             (_('Manage Publishers'),
+                        self.do_tags_list_edit, (None, 'publisher'), 'publisher'),
+             (_('Manage Tags'),
+                        self.do_tags_list_edit, (None, 'tags'), 'tags'),
+             (_('Manage User Categories'),
+                        self.do_edit_user_categories, (None,), 'user:'),
+             (_('Manage Saved Searches'),
+                        self.do_saved_search_edit, (None,), 'search')
+            ):
+            m.addAction(QIcon(I(category_icon_map[cat_name])), text,
+                    partial(func, *args))
+        fm = db.new_api.field_metadata
+        categories = [x[0] for x in find_categories(fm) if fm.is_custom_field(x[0])]
+        if categories:
+            if len(categories) > 5:
+                m = m.addMenu(_('Custom columns'))
+            else:
+                m.addSeparator()
+
+            def cat_key(x):
+                try:
+                    return fm[x]['name']
+                except Exception:
+                    return ''
+            for cat in sorted(categories, key=cat_key):
+                name = cat_key(cat)
+                if name:
+                    m.addAction(_('Manage {}').format(name), partial(self.do_tags_list_edit, None, cat))
 
     def init_tag_browser_mixin(self, db):
         self.library_view.model().count_changed_signal.connect(self.tags_view.recount)
@@ -47,24 +86,14 @@ class TagBrowserMixin(object):  # {{{
         self.tags_view.restriction_error.connect(self.do_restriction_error,
                                                  type=Qt.QueuedConnection)
         self.tags_view.tag_item_delete.connect(self.do_tag_item_delete)
+        self.populate_tb_manage_menu(db)
+        self.tags_view.model().user_categories_edited.connect(self.user_categories_edited,
+                type=Qt.QueuedConnection)
+        self.tags_view.model().user_category_added.connect(self.user_categories_edited,
+                type=Qt.QueuedConnection)
 
-        for text, func, args, cat_name in (
-             (_('Manage Authors'),
-                        self.do_author_sort_edit, (self, None), 'authors'),
-             (_('Manage Series'),
-                        self.do_tags_list_edit, (None, 'series'), 'series'),
-             (_('Manage Publishers'),
-                        self.do_tags_list_edit, (None, 'publisher'), 'publisher'),
-             (_('Manage Tags'),
-                        self.do_tags_list_edit, (None, 'tags'), 'tags'),
-             (_('Manage User Categories'),
-                        self.do_edit_user_categories, (None,), 'user:'),
-             (_('Manage Saved Searches'),
-                        self.do_saved_search_edit, (None,), 'search')
-            ):
-            m = self.alter_tb.manage_menu
-            m.addAction(QIcon(I(category_icon_map[cat_name])), text,
-                    partial(func, *args))
+    def user_categories_edited(self):
+        self.library_view.model().refresh()
 
     def do_restriction_error(self):
         error_dialog(self.tags_view, _('Invalid search restriction'),
@@ -117,6 +146,7 @@ class TagBrowserMixin(object):  # {{{
             db.new_api.set_pref('user_categories', d.categories)
             db.new_api.refresh_search_locations()
             self.tags_view.recount()
+            self.user_categories_edited()
 
     def do_delete_user_category(self, category_name):
         '''
@@ -150,6 +180,7 @@ class TagBrowserMixin(object):  # {{{
                 del user_cats[k]
         db.new_api.set_pref('user_categories', user_cats)
         self.tags_view.recount()
+        self.user_categories_edited()
 
     def do_del_item_from_user_cat(self, user_cat, item_name, item_category):
         '''
@@ -168,6 +199,7 @@ class TagBrowserMixin(object):  # {{{
         self.tags_view.model().delete_item_from_user_category(user_cat,
                                                       item_name, item_category)
         self.tags_view.recount()
+        self.user_categories_edited()
 
     def do_add_item_to_user_cat(self, dest_category, src_name, src_category):
         '''
@@ -195,6 +227,7 @@ class TagBrowserMixin(object):  # {{{
             user_cats[dest_category].append([src_name, src_category, 0])
         db.new_api.set_pref('user_categories', user_cats)
         self.tags_view.recount()
+        self.user_categories_edited()
 
     def do_tags_list_edit(self, tag, category):
         '''
@@ -305,6 +338,7 @@ class TagBrowserMixin(object):  # {{{
         self.library_view.model().refresh_ids(ids)
 
 # }}}
+
 
 class TagBrowserWidget(QWidget):  # {{{
 
@@ -526,4 +560,3 @@ class TagBrowserWidget(QWidget):  # {{{
         self.not_found_label.setVisible(False)
 
 # }}}
-

@@ -11,6 +11,7 @@ from PyQt5.Qt import QToolButton, QAction, pyqtSignal, QIcon
 from calibre.gui2.actions import InterfaceAction
 from calibre.utils.icu import sort_key
 
+
 class SortAction(QAction):
 
     sort_requested = pyqtSignal(object, object)
@@ -22,6 +23,7 @@ class SortAction(QAction):
 
     def __call__(self):
         self.sort_requested.emit(self.key, self.ascending)
+
 
 class SortByAction(InterfaceAction):
 
@@ -36,6 +38,7 @@ class SortByAction(InterfaceAction):
 
     def genesis(self):
         self.sorted_icon = QIcon(I('ok.png'))
+        self.qaction.menu().aboutToShow.connect(self.update_menu)
 
     def location_selected(self, loc):
         self.qaction.setEnabled(loc == 'library')
@@ -74,5 +77,3 @@ class SortByAction(InterfaceAction):
             self.gui.library_view.intelligent_sort(key, True)
         else:
             self.gui.library_view.sort_by_named_field(key, ascending)
-
-

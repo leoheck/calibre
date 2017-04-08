@@ -16,10 +16,11 @@ from calibre.utils.config import prefs, tweaks
 from calibre.gui2.actions import InterfaceAction
 from calibre.customize.ui import plugin_for_input_format
 
+
 class ConvertAction(InterfaceAction):
 
     name = 'Convert Books'
-    action_spec = (_('Convert books'), 'convert.png', _('Convert books between different ebook formats'), _('C'))
+    action_spec = (_('Convert'), 'convert.png', _('Convert books between different ebook formats'), _('C'))
     dont_add_to = frozenset(['context-menu-device'])
     action_type = 'current'
     action_add_menu = True
@@ -177,8 +178,8 @@ class ConvertAction(InterfaceAction):
 
         if num > 0:
             self.gui.jobs_pointer.start()
-            self.gui.status_bar.show_message(_('Starting conversion of %d book(s)') %
-                num, 2000)
+            self.gui.status_bar.show_message(ngettext(
+                'Starting conversion of the book', 'Starting conversion of {} books', num).format(num), 2000)
 
     def queue_convert_jobs(self, jobs, changed, bad, rows, previous,
             converted_func, extra_job_args=[], rows_are_ids=False):
@@ -263,8 +264,8 @@ class ConvertAction(InterfaceAction):
             with open(temp_files[-1].name, 'rb') as data:
                 db.add_format(book_id, fmt, data, index_is_id=True)
             self.gui.book_converted.emit(book_id, fmt)
-            self.gui.status_bar.show_message(job.description +
-                    (' completed'), 2000)
+            self.gui.status_bar.show_message(job.description + ' ' +
+                    _('completed'), 2000)
         finally:
             for f in temp_files:
                 try:
@@ -281,5 +282,3 @@ class ConvertAction(InterfaceAction):
                 lv.model().current_changed(current, QModelIndex())
         if manually_fine_tune_toc:
             self.gui.iactions['Edit ToC'].do_one(book_id, fmt.upper())
-
-

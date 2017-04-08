@@ -25,6 +25,7 @@ from calibre.ebooks.pdf.render.common import (inch, cm, mm, pica, cicero,
 from calibre.ebooks.pdf.render.engine import PdfDevice
 from calibre.ptempfile import PersistentTemporaryFile
 
+
 def get_page_size(opts, for_comic=False):  # {{{
     use_profile = not (opts.override_profile_size or
                        opts.output_profile.short_name == 'default' or
@@ -60,9 +61,11 @@ def get_page_size(opts, for_comic=False):  # {{{
     return page_size
 # }}}
 
+
 class Page(QWebPage):  # {{{
 
     def __init__(self, opts, log):
+        from calibre.gui2 import secure_web_page
         self.log = log
         QWebPage.__init__(self)
         settings = self.settings()
@@ -72,6 +75,7 @@ class Page(QWebPage):  # {{{
                 opts.pdf_mono_font_size)
         settings.setFontSize(QWebSettings.MinimumLogicalFontSize, 8)
         settings.setFontSize(QWebSettings.MinimumFontSize, 8)
+        secure_web_page(settings)
 
         std = {'serif':opts.pdf_serif_family, 'sans':opts.pdf_sans_family,
                 'mono':opts.pdf_mono_family}.get(opts.pdf_standard_font,
@@ -104,6 +108,7 @@ class Page(QWebPage):  # {{{
 
 # }}}
 
+
 def draw_image_page(page_rect, painter, p, preserve_aspect_ratio=True):
     if preserve_aspect_ratio:
         aspect_ratio = float(p.width())/p.height()
@@ -120,6 +125,7 @@ def draw_image_page(page_rect, painter, p, preserve_aspect_ratio=True):
         page_rect.setHeight(nnh)
         page_rect.setWidth(nnw)
     painter.drawPixmap(page_rect, p, p.rect())
+
 
 class PDFWriter(QObject):
 
@@ -411,6 +417,55 @@ class PDFWriter(QObject):
                 break
             col += 1
 
-        if not self.doc.errors_occurred:
+        if not self.doc.errors_occurred and self.doc.current_page_num > 1:
             self.doc.add_links(self.current_item, start_page, amap['links'],
                             amap['anchors'])
+
+
+class ImagePDFWriter(object):
+
+    def __init__(self, opts, log, cover_data=None, toc=None):
+        from calibre.gui2 import must_use_qt
+        must_use_qt()
+
+        self.logger = self.log = log
+        self.opts = opts
+        self.cover_data = cover_data
+        self.toc = toc
+
+    def dump(self, items, out_stream, pdf_metadata):
+        opts = self.opts
+        page_size = get_page_size(self.opts)
+        ml, mr = opts.margin_left, opts.margin_right
+        self.doc = PdfDevice(
+            out_stream, page_size=page_size, left_margin=ml,
+            top_margin=opts.margin_top, right_margin=mr,
+            bottom_margin=opts.margin_bottom,
+            errors=self.log.error, debug=self.log.debug, compress=not
+            opts.uncompressed_pdf, opts=opts, mark_links=opts.pdf_mark_links)
+        self.painter = QPainter(self.doc)
+        self.doc.set_metadata(title=pdf_metadata.title,
+                              author=pdf_metadata.author,
+                              tags=pdf_metadata.tags, mi=pdf_metadata.mi)
+        self.doc_title = pdf_metadata.title
+        self.doc_author = pdf_metadata.author
+        page_rect = QRect(*self.doc.full_page_rect)
+
+        for imgpath in items:
+            self.log.debug('Processing %s...' % imgpath)
+            self.doc.init_page()
+            p = QPixmap()
+            with lopen(imgpath, 'rb') as f:
+                if not p.loadFromData(f.read()):
+                    raise ValueError('Could not read image from: {}'.format(imgpath))
+            draw_image_page(page_rect,
+                    self.painter, p,
+                    preserve_aspect_ratio=True)
+            self.doc.end_page()
+        if self.toc is not None and len(self.toc) > 0:
+            self.doc.add_outline(self.toc)
+
+        self.painter.end()
+
+        if self.doc.errors_occurred:
+            raise Exception('PDF Output failed, see log for details')

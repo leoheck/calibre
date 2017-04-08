@@ -11,13 +11,14 @@ import json
 from PyQt5.Qt import (
     QWidget, QTimer, QStackedLayout, QLabel, QScrollArea, QVBoxLayout,
     QPainter, Qt, QPalette, QRect, QSize, QSizePolicy, pyqtSignal,
-    QColor, QMenu, QApplication, QIcon)
+    QColor, QMenu, QApplication, QIcon, QUrl)
 
-from calibre.constants import iswindows
-from calibre.gui2.tweak_book import editors, actions, current_container, tprefs
+from calibre.constants import FAKE_HOST, FAKE_PROTOCOL
+from calibre.gui2.tweak_book import editors, actions, tprefs
 from calibre.gui2.tweak_book.editor.themes import get_theme, theme_color
 from calibre.gui2.tweak_book.editor.text import default_font_family
 from css_selectors import parse, SelectorError
+
 
 class Heading(QWidget):  # {{{
 
@@ -89,6 +90,7 @@ class Heading(QWidget):  # {{{
         self.context_menu_requested.emit(self, ev)
 # }}}
 
+
 class Cell(object):  # {{{
 
     __slots__ = ('rect', 'text', 'right_align', 'color_role', 'override_color', 'swatch', 'is_overriden')
@@ -121,6 +123,7 @@ class Cell(object):  # {{{
             painter.setPen(palette.color(QPalette.WindowText))
             painter.drawLine(br.left(), br.top() + br.height() // 2, br.right(), br.top() + br.height() // 2)
 # }}}
+
 
 class Declaration(QWidget):
 
@@ -254,6 +257,7 @@ class Declaration(QWidget):
     def contextMenuEvent(self, ev):
         self.context_menu_requested.emit(self, ev)
 
+
 class Box(QWidget):
 
     hyperlink_activated = pyqtSignal(object)
@@ -369,6 +373,7 @@ class Property(object):
     def __repr__(self):
         return '<Property name=%s value=%s important=%s color=%s specificity=%s is_overriden=%s>' % (
             self.name, self.value, self.important, self.color, self.specificity, self.is_overriden)
+
 
 class LiveCSS(QWidget):
 
@@ -513,12 +518,11 @@ class LiveCSS(QWidget):
         rule['properties'] = properties
 
         href = rule['href']
-        if hasattr(href, 'startswith') and href.startswith('file://'):
-            href = href[len('file://'):]
-            if iswindows and href.startswith('/'):
-                href = href[1:]
-            if href:
-                rule['href'] = current_container().abspath_to_name(href, root=self.preview.current_root)
+        if hasattr(href, 'startswith') and href.startswith('%s://%s' % (FAKE_PROTOCOL, FAKE_HOST)):
+            qurl = QUrl(href)
+            name = qurl.path()[1:]
+            if name:
+                rule['href'] = name
 
     @property
     def current_name(self):
@@ -563,4 +567,3 @@ class LiveCSS(QWidget):
             editor.goto_css_rule(data['rule_address'])
         elif data['type'] == 'elem':
             editor.goto_css_rule(data['rule_address'], sourceline_address=data['sourceline_address'])
-

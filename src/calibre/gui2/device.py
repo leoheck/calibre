@@ -14,7 +14,7 @@ from PyQt5.Qt import (
 from calibre.customize.ui import (available_input_formats, available_output_formats,
     device_plugins, disabled_device_plugins)
 from calibre.devices.interface import DevicePlugin, currently_connected_device
-from calibre.devices.errors import (UserFeedback, OpenFeedback, OpenFailed,
+from calibre.devices.errors import (UserFeedback, OpenFeedback, OpenFailed, OpenActionNeeded,
                                     InitialConnectionError)
 from calibre.ebooks.covers import cprefs, override_prefs, scale_cover, generate_cover
 from calibre.gui2.dialogs.choose_format_device import ChooseFormatDeviceDialog
@@ -36,6 +36,7 @@ from calibre.utils.img import scale_image
 from calibre.library.save_to_disk import find_plugboard
 from calibre.ptempfile import PersistentTemporaryFile, force_unicode as filename_to_unicode
 # }}}
+
 
 class DeviceJob(BaseJob):  # {{{
 
@@ -116,10 +117,12 @@ class DeviceJob(BaseJob):  # {{{
 
     # }}}
 
+
 def device_name_for_plugboards(device_class):
     if hasattr(device_class, 'DEVICE_PLUGBOARD_NAME'):
         return device_class.DEVICE_PLUGBOARD_NAME
     return device_class.__class__.__name__
+
 
 class BusyCursor(object):
 
@@ -162,6 +165,7 @@ class DeviceManager(Thread):  # {{{
         self.ejected_devices  = set([])
         self.mount_connection_requests = Queue.Queue(0)
         self.open_feedback_slot = open_feedback_slot
+        self.open_feedback_only_once_seen = set()
         self.after_callback_feedback_slot = after_callback_feedback_slot
         self.open_feedback_msg = open_feedback_msg
         self._device_information = None
@@ -293,6 +297,10 @@ class DeviceManager(Thread):  # {{{
                         except BlacklistedDevice as e:
                             prints('Ignoring blacklisted device: %s'%
                                     as_unicode(e))
+                        except OpenActionNeeded as e:
+                            if e.only_once_id not in self.open_feedback_only_once_seen:
+                                self.open_feedback_only_once_seen.add(e.only_once_id)
+                                self.open_feedback_msg(e.device_name, e)
                         except:
                             prints('Error while trying to open %s (Driver: %s)'%
                                     (cd, dev))
@@ -593,7 +601,7 @@ class DeviceManager(Thread):  # {{{
 
     def upload_books(self, done, files, names, on_card=None, titles=None,
                      metadata=None, plugboards=None, add_as_step_to_job=None):
-        desc = _('Upload %d books to device')%len(names)
+        desc = ngettext('Upload one book to the device', 'Upload {} books to device', len(names)).format(len(names))
         if titles:
             desc += u':' + u', '.join(titles)
         return self.create_job_step(self._upload_books, done, to_job=add_as_step_to_job,
@@ -685,6 +693,7 @@ class DeviceManager(Thread):  # {{{
 
     # }}}
 
+
 class DeviceAction(QAction):  # {{{
 
     a_s = pyqtSignal(object)
@@ -703,6 +712,7 @@ class DeviceAction(QAction):  # {{{
         return self.__class__.__name__ + ':%s:%s:%s'%(self.dest, self.delete,
                 self.specific)
     # }}}
+
 
 class DeviceMenu(QMenu):  # {{{
 
@@ -853,6 +863,7 @@ class DeviceMenu(QMenu):  # {{{
 
     # }}}
 
+
 class DeviceSignals(QObject):  # {{{
     #: This signal is emitted once, after metadata is downloaded from the
     #: connected device.
@@ -869,8 +880,10 @@ class DeviceSignals(QObject):  # {{{
     #: otherwise a disconnection.
     device_connection_changed = pyqtSignal(object)
 
+
 device_signals = DeviceSignals()
 # }}}
+
 
 class DeviceMixin(object):  # {{{
 
@@ -1364,6 +1377,7 @@ class DeviceMixin(object):  # {{{
     @dynamic_property
     def news_to_be_synced(self):
         doc = 'Set of ids to be sent to device'
+
         def fget(self):
             ans = []
             try:
@@ -1764,6 +1778,7 @@ class DeviceMixin(object):  # {{{
             return False
 
         string_pat = re.compile('(?u)\W|[_]')
+
         def clean_string(x):
             x = x.lower() if x else ''
             return string_pat.sub('', x)
@@ -2003,4 +2018,3 @@ class DeviceMixin(object):  # {{{
         # The status line is reset when the job finishes
         return update_metadata
     # }}}
-

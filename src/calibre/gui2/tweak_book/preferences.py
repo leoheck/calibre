@@ -29,6 +29,7 @@ from calibre.gui2.tweak_book.spell import ManageDictionaries
 from calibre.gui2.font_family_chooser import FontFamilyChooser
 from calibre.gui2.tweak_book.widgets import Dialog
 
+
 class BasicSettings(QWidget):  # {{{
 
     changed_signal = pyqtSignal()
@@ -150,6 +151,7 @@ class BasicSettings(QWidget):  # {{{
         return self.current_value(name) != self.initial_value(name)
 # }}}
 
+
 class EditorSettings(BasicSettings):
 
     def __init__(self, parent=None):
@@ -266,6 +268,7 @@ class EditorSettings(BasicSettings):
         if d.theme_name:
             s.setter(s.widget, d.theme_name)
 
+
 class IntegrationSettings(BasicSettings):
 
     def __init__(self, parent=None):
@@ -288,6 +291,7 @@ class IntegrationSettings(BasicSettings):
         order.setToolTip(_('When auto-selecting the format to edit for a book with'
                            ' multiple formats, this is the preference order.'))
         l.addRow(_('Preferred format order (drag and drop to change)'), order)
+
 
 class MainWindowSettings(BasicSettings):
 
@@ -322,12 +326,13 @@ class MainWindowSettings(BasicSettings):
         l.addRow(nd)
 
         nd = self('file_list_shows_full_pathname')
-        nd.setText(_('Show full file paths in the Files Browser'))
+        nd.setText(_('Show full file paths in the File Browser'))
         nd.setToolTip('<p>' + _(
             'Showing the full file paths is useful when editing books that contain'
             ' multiple files with the same file name.'
         ))
         l.addRow(nd)
+
 
 class PreviewSettings(BasicSettings):
 
@@ -363,11 +368,13 @@ class PreviewSettings(BasicSettings):
 
 # ToolbarSettings  {{{
 
+
 class ToolbarList(QListWidget):
 
     def __init__(self, parent=None):
         QListWidget.__init__(self, parent)
         self.setSelectionMode(self.ExtendedSelection)
+
 
 class ToolbarSettings(QWidget):
 
@@ -376,7 +383,6 @@ class ToolbarSettings(QWidget):
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.l = gl = QGridLayout(self)
-        self.setLayout(gl)
         self.changed = False
 
         self.bars = b = QComboBox(self)
@@ -436,10 +442,11 @@ class ToolbarSettings(QWidget):
         self.toolbar_icon_size = ics = QSpinBox(self)
         ics.setMinimum(16), ics.setMaximum(128), ics.setSuffix(' px'), ics.setValue(tprefs['toolbar_icon_size'])
         ics.setToolTip('<p>' + _('Adjust the size of icons on all toolbars'))
-        r = l.rowCount()
+        self.h = h = QHBoxLayout()
+        gl.addLayout(h, gl.rowCount(), 0, 1, -1)
         self.toolbar_icon_size_label = la = QLabel(_('Toolbar &icon size:'))
         la.setBuddy(ics)
-        l.addWidget(la, r, 0), l.addWidget(ics, r, 1)
+        h.addWidget(la), h.addWidget(ics), h.addStretch(10)
 
     def read_settings(self, prefs=None):
         prefs = prefs or tprefs
@@ -570,6 +577,7 @@ class ToolbarSettings(QWidget):
 
 # }}}
 
+
 class TemplatesDialog(Dialog):  # {{{
 
     def __init__(self, parent=None):
@@ -579,13 +587,17 @@ class TemplatesDialog(Dialog):  # {{{
     def setup_ui(self):
         from calibre.gui2.tweak_book.templates import DEFAULT_TEMPLATES
         from calibre.gui2.tweak_book.editor.text import TextEdit
-        self.l = l = QFormLayout(self)
-        self.setLayout(l)
+        # Cannot use QFormLayout as it does not play nice with TextEdit on windows
+        self.l = l = QVBoxLayout(self)
 
         self.syntaxes = s = QComboBox(self)
         s.addItems(sorted(DEFAULT_TEMPLATES.iterkeys()))
         s.setCurrentIndex(s.findText('html'))
-        l.addRow(_('Choose the &type of template to edit:'), s)
+        h = QHBoxLayout()
+        l.addLayout(h)
+        la = QLabel(_('Choose the &type of template to edit:'))
+        la.setBuddy(s)
+        h.addWidget(la), h.addWidget(s), h.addStretch(10)
         s.currentIndexChanged.connect(self.show_template)
 
         self.helpl = la = QLabel(_(
@@ -594,14 +606,14 @@ class TemplatesDialog(Dialog):  # {{{
             ' for example for CSS rules, you have to escape them, like this: {3}').format(*['<code>%s</code>'%x for x in
                 ['{TITLE}', '{AUTHOR}', '%CURSOR%', 'body {{ color: red }}']]))
         la.setWordWrap(True)
-        l.addRow(la)
+        l.addWidget(la)
 
         self.save_timer = t = QTimer(self)
         t.setSingleShot(True), t.setInterval(100)
         t.timeout.connect(self._save_syntax)
 
         self.editor = e = TextEdit(self)
-        l.addRow(e)
+        l.addWidget(e)
         e.textChanged.connect(self.save_syntax)
 
         self.show_template()
@@ -610,7 +622,7 @@ class TemplatesDialog(Dialog):  # {{{
         self.bb.addButton(self.bb.Close)
         self.rd = b = self.bb.addButton(self.bb.RestoreDefaults)
         b.clicked.connect(self.restore_defaults)
-        l.addRow(self.bb)
+        l.addWidget(self.bb)
 
     @property
     def current_syntax(self):
@@ -642,6 +654,7 @@ class TemplatesDialog(Dialog):  # {{{
         self.show_template()
         self._save_syntax()
 # }}}
+
 
 class Preferences(QDialog):
 
@@ -742,8 +755,11 @@ class Preferences(QDialog):
             if key.endswith('_again') and tprefs.get(key) is False:
                 del tprefs[key]
                 changed += 1
-        info_dialog(self, _('Disabled confirmations restored'), _(
-            '%d disabled confirmation prompts were restored') % changed, show=True)
+        msg = _('There are no disabled confirmation prompts')
+        if changed:
+            msg = ngettext(
+                'One disabled confirmation prompt was restored', '{} disabled confirmation prompts were restored', changed).format(changed)
+        info_dialog(self, _('Disabled confirmations restored'), msg, show=True)
 
     def accept(self):
         tprefs.set('preferences_geom', bytearray(self.saveGeometry()))
@@ -756,6 +772,7 @@ class Preferences(QDialog):
         tprefs.set('preferences_geom', bytearray(self.saveGeometry()))
         QDialog.reject(self)
 
+
 if __name__ == '__main__':
     from calibre.gui2 import Application
     from calibre.gui2.tweak_book.main import option_parser
@@ -765,4 +782,3 @@ if __name__ == '__main__':
     main = Main(opts)
     d = Preferences(main)
     d.exec_()
-

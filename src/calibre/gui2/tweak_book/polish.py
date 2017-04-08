@@ -11,32 +11,49 @@ from threading import Thread
 from PyQt5.Qt import (
     QTextBrowser, QVBoxLayout, QDialog, QDialogButtonBox, QIcon, QLabel,
     QCheckBox, Qt, QListWidgetItem, QHBoxLayout, QListWidget, QPixmap,
-    QSpinBox, QStyledItemDelegate, QSize, QModelIndex, QStyle, QPen,
+    QSpinBox, QStyledItemDelegate, QSize, QStyle, QPen,
     QProgressBar, pyqtSignal
 )
 
 from calibre import human_readable, fit_image, force_unicode
 from calibre.ebooks.oeb.polish.main import CUSTOMIZATION
+from calibre.gui2 import empty_index
 from calibre.gui2.tweak_book import tprefs, current_container, set_current_container
 from calibre.gui2.tweak_book.widgets import Dialog
 from calibre.utils.icu import numeric_sort_key
 
+
 class Abort(Exception):
     pass
+
 
 def customize_remove_unused_css(name, parent, ans):
     d = QDialog(parent)
     d.l = l = QVBoxLayout()
     d.setLayout(d.l)
     d.setWindowTitle(_('Remove unused CSS'))
-    d.la = la = QLabel(_(
-        'This will remove all CSS rules that do not match any actual content. You'
-        ' can also have it automatically remove any class attributes from the HTML'
-        ' that do not match any CSS rules, by using the check box below:'))
-    la.setWordWrap(True), l.addWidget(la)
+
+    def label(text):
+        la = QLabel(text)
+        la.setWordWrap(True), l.addWidget(la), la.setMinimumWidth(450)
+        l.addWidget(la)
+        return la
+
+    d.la = label(_(
+        'This will remove all CSS rules that do not match any actual content.'
+        ' There are a couple of additional cleanups you can enable, below:'))
     d.c = c = QCheckBox(_('Remove unused &class attributes'))
     c.setChecked(tprefs['remove_unused_classes'])
     l.addWidget(c)
+    d.la2 = label('<span style="font-size:small; font-style: italic">' + _(
+        'Remove all class attributes from the HTML that do not match any existing CSS rules'))
+    d.m = m = QCheckBox(_('Merge identical CSS rules'))
+    m.setChecked(tprefs['merge_identical_selectors'])
+    l.addWidget(m)
+    d.la3 = label('<span style="font-size:small; font-style: italic">' + _(
+        'Merge CSS rules in the same stylesheet that have identical selectors.'
+    ' Note that in rare cases merging can result in a change to the effective styling'
+    ' of the book, so use with care.'))
     d.bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
     d.l.addWidget(d.bb)
     d.bb.rejected.connect(d.reject)
@@ -44,6 +61,8 @@ def customize_remove_unused_css(name, parent, ans):
     if d.exec_() != d.Accepted:
         raise Abort()
     ans['remove_unused_classes'] = tprefs['remove_unused_classes'] = c.isChecked()
+    ans['merge_identical_selectors'] = tprefs['merge_identical_selectors'] = m.isChecked()
+
 
 def get_customization(action, name, parent):
     ans = CUSTOMIZATION.copy()
@@ -54,10 +73,12 @@ def get_customization(action, name, parent):
         return None
     return ans
 
+
 def format_report(title, report):
     from calibre.ebooks.markdown import markdown
     report = [force_unicode(line) for line in report]
     return markdown('# %s\n\n'%force_unicode(title) + '\n\n'.join(report), output_format='html4')
+
 
 def show_report(changed, title, report, parent, show_current_diff):
     report = format_report(title, report)
@@ -82,6 +103,7 @@ def show_report(changed, title, report, parent, show_current_diff):
 
 # CompressImages {{{
 
+
 class ImageItemDelegate(QStyledItemDelegate):
 
     def sizeHint(self, option, index):
@@ -101,7 +123,7 @@ class ImageItemDelegate(QStyledItemDelegate):
             index.model().setData(index, pmap, Qt.UserRole+1)
         x, y = (irect.width() - pmap.width())//2, (irect.height() - pmap.height())//2
         r = irect.adjusted(x, y, -x, -y)
-        QStyledItemDelegate.paint(self, painter, option, QModelIndex())
+        QStyledItemDelegate.paint(self, painter, option, empty_index)
         painter.drawPixmap(r, pmap)
         trect = irect.adjusted(irect.width() + 10, 0, 0, 0)
         trect.setRight(option.rect.right())
@@ -110,6 +132,7 @@ class ImageItemDelegate(QStyledItemDelegate):
             painter.setPen(QPen(option.palette.color(option.palette.HighlightedText)))
         painter.drawText(trect, Qt.AlignVCenter | Qt.AlignLeft, name + '\n' + sz)
         painter.restore()
+
 
 class CompressImages(Dialog):
 
@@ -166,6 +189,7 @@ class CompressImages(Dialog):
         if not self.enable_lossy.isChecked():
             return None
         return self.jq.value()
+
 
 class CompressImagesProgress(Dialog):
 
@@ -229,6 +253,7 @@ class CompressImagesProgress(Dialog):
         self.msg.setText(name)
 
 # }}}
+
 
 if __name__ == '__main__':
     from calibre.gui2 import Application

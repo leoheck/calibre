@@ -13,6 +13,7 @@ from PyQt5.Qt import QTimer, QDialog, QDialogButtonBox, QCheckBox, QVBoxLayout, 
 from calibre.gui2 import error_dialog
 from calibre.gui2.actions import InterfaceAction
 
+
 class Choose(QDialog):
 
     def __init__(self, fmts, parent=None):
@@ -54,7 +55,7 @@ class Choose(QDialog):
 class TweakEpubAction(InterfaceAction):
 
     name = 'Tweak ePub'
-    action_spec = (_('Edit book'), 'tweak.png', _('Edit books in the EPUB or AZW formats'), _('T'))
+    action_spec = (_('Edit book'), 'edit_book.png', _('Edit books in the EPUB or AZW formats'), _('T'))
     dont_add_to = frozenset(['context-menu-device'])
     action_type = 'current'
 
@@ -108,7 +109,7 @@ class TweakEpubAction(InterfaceAction):
         if not tweakable_fmts:
             return error_dialog(self.gui, _('Cannot Edit Book'),
                     _('The book must be in the %s formats to edit.'
-                        '\n\nFirst convert the book to one of these formats.') % (_(' or '.join(SUPPORTED))),
+                        '\n\nFirst convert the book to one of these formats.') % (_(' or ').join(SUPPORTED)),
                     show=True)
         from calibre.gui2.tweak_book import tprefs
         tprefs.refresh()  # In case they were changed in a Tweak Book process

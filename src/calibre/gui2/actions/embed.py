@@ -14,6 +14,7 @@ from calibre import force_unicode
 from calibre.gui2 import gprefs
 from calibre.gui2.actions import InterfaceAction
 
+
 class EmbedAction(InterfaceAction):
 
     name = 'Embed Metadata'
@@ -97,7 +98,8 @@ class EmbedAction(InterfaceAction):
             self.job_data = None
             self.gui.library_view.model().refresh_ids(book_ids)
             if i > 0:
-                self.gui.status_bar.show_message(_('Embedded metadata in %d books') % i, 5000)
+                self.gui.status_bar.show_message(ngettext(
+                    'Embedded metadata in one book', 'Embedded metadata in {} books', i).format(i), 5000)
             if errors:
                 det_msg = '\n\n'.join([_('The {0} format of {1}:\n\n{2}\n').format(
                     (fmt or '').upper(), force_unicode(mi.title), force_unicode(tb)) for mi, fmt, tb in errors])
@@ -120,6 +122,7 @@ class EmbedAction(InterfaceAction):
         pd.setValue(i)
         db = self.gui.current_db.new_api
         book_id = book_ids[i]
+
         def report_error(mi, fmt, tb):
             mi.book_id = book_id
             errors.append((mi, fmt, tb))

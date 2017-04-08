@@ -22,6 +22,7 @@ from calibre.gui2.widgets2 import Dialog
 from calibre.utils.exim import all_known_libraries, export, Importer, import_data
 from calibre.utils.icu import numeric_sort_key
 
+
 def disk_usage(path_to_dir, abort=None):
     stack = [path_to_dir]
     ans = 0
@@ -39,6 +40,7 @@ def disk_usage(path_to_dir, abort=None):
         except EnvironmentError:
             pass
     return ans
+
 
 class ImportLocation(QWidget):
 
@@ -65,6 +67,7 @@ class ImportLocation(QWidget):
     @property
     def path(self):
         return self.le.text().strip()
+
 
 class RunAction(QDialog):
 
@@ -139,6 +142,7 @@ class RunAction(QDialog):
             import traceback
             self.tb = traceback.format_exc()
         self.finish_signal.emit()
+
 
 class EximDialog(Dialog):
 
@@ -273,6 +277,14 @@ class EximDialog(Dialog):
         l.addStretch()
 
     def validate_import(self):
+        from calibre.gui2.ui import get_gui
+        g = get_gui()
+        if g is not None:
+            if g.iactions['Connect Share'].content_server_is_running:
+                error_dialog(self, _('Content Server running'), _(
+                    'Cannot import while the content server is running, shut it down first by clicking the'
+                    ' Connect/share button on the calibre toolbar'), show=True)
+                return False
         if self.import_panel.stack.currentIndex() == 0:
             error_dialog(self, _('No folder selected'), _(
                 'You must select a folder containing the previously exported data that you wish to import'), show=True)
@@ -364,6 +376,7 @@ class EximDialog(Dialog):
     def reject(self):
         self.abort_disk_usage.set()
         Dialog.reject(self)
+
 
 if __name__ == '__main__':
     from calibre.gui2 import Application

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Original Perl version by: John Gruber http://daringfireball.net/ 10 May 2008
+Original Perl version by: John Gruber https://daringfireball.net/ 10 May 2008
 Python version by Stuart Colville http://muffinresearch.co.uk
 Modifications to make it work with non-ascii chars by Kovid Goyal
 License: http://www.opensource.org/licenses/mit-license.php
@@ -31,6 +31,7 @@ UC_INITIALS = re.compile(r"^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$")
 
 _lang = None
 
+
 def lang():
     global _lang
     if _lang is None:
@@ -38,8 +39,8 @@ def lang():
         _lang = get_lang().lower()
     return _lang
 
-def titlecase(text):
 
+def titlecase(text):
     """
     Titlecases input text
 
@@ -99,4 +100,3 @@ def titlecase(text):
     ), result)
 
     return result
-

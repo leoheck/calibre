@@ -25,6 +25,7 @@ from calibre.utils.icu import capitalize, collation_order, sort_key
 from calibre.utils.img import scale_image
 from calibre.utils.zipfile import ZipFile
 
+
 class Formatter(TemplateFormatter):
 
     def get_value(self, key, args, kwargs):
@@ -2697,7 +2698,10 @@ class CatalogBuilder(object):
             for (i, tag) in enumerate(sorted(book.get('genres', []))):
                 aTag = Tag(_soup, 'a')
                 if self.opts.generate_genres:
-                    aTag['href'] = "Genre_%s.html" % self.genre_tags_dict[tag]
+                    try:
+                        aTag['href'] = "Genre_%s.html" % self.genre_tags_dict[tag]
+                    except KeyError:
+                        pass
                 aTag.insert(0, escape(NavigableString(tag)))
                 genresTag.insert(gtc, aTag)
                 gtc += 1
@@ -4421,7 +4425,7 @@ class CatalogBuilder(object):
                 title['cover'] = cover
 
                 if not os.path.exists(cover):
-                    shutil.copyfile(I('book.png'), cover)
+                    shutil.copyfile(I('default_cover.png'), cover)
 
                 if os.path.isfile(default_thumb_fp):
                     # Check to see if default cover is newer than thumbnail

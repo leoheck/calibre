@@ -27,8 +27,10 @@ if False:
     OptionSet, ConfigInterface, read_tweaks, write_tweaks
     read_raw_tweaks, tweaks, plugin_dir, prefs
 
+
 def check_config_write_access():
     return os.access(config_dir, os.W_OK) and os.access(config_dir, os.X_OK)
+
 
 class CustomHelpFormatter(optparse.IndentedHelpFormatter):
 
@@ -188,6 +190,7 @@ class OptionParser(optparse.OptionParser):
             args = [optparse.OptionGroup(self, *args, **kwargs)] + list(args[1:])
         return optparse.OptionParser.add_option_group(self, *args, **kwargs)
 
+
 class DynamicConfig(dict):
     '''
     A replacement for QSettings that supports dynamic config keys.
@@ -195,6 +198,7 @@ class DynamicConfig(dict):
     data is stored in a non human readable pickle file, so only use this
     class for preferences that you don't intend to have the users edit directly.
     '''
+
     def __init__(self, name='dynamic'):
         dict.__init__(self, {})
         self.name = name
@@ -254,7 +258,9 @@ class DynamicConfig(dict):
                 f.truncate()
                 f.write(raw)
 
+
 dynamic = DynamicConfig()
+
 
 class XMLConfig(dict):
 
@@ -262,7 +268,7 @@ class XMLConfig(dict):
     Similar to :class:`DynamicConfig`, except that it uses an XML storage
     backend instead of a pickle file.
 
-    See `http://docs.python.org/dev/library/plistlib.html`_ for the supported
+    See `https://docs.python.org/dev/library/plistlib.html`_ for the supported
     data types.
     '''
 
@@ -279,6 +285,18 @@ class XMLConfig(dict):
             self.file_path += self.EXTENSION
 
         self.refresh()
+
+    def mtime(self):
+        try:
+            return os.path.getmtime(self.file_path)
+        except EnvironmentError:
+            return 0
+
+    def touch(self):
+        try:
+            os.utime(self.file_path, None)
+        except EnvironmentError:
+            pass
 
     def raw_to_object(self, raw):
         return plistlib.readPlistFromString(raw)
@@ -362,6 +380,7 @@ class XMLConfig(dict):
         self.no_commit = False
         self.commit()
 
+
 def to_json(obj):
     if isinstance(obj, bytearray):
         return {'__class__': 'bytearray',
@@ -372,6 +391,7 @@ def to_json(obj):
                 '__value__': isoformat(obj, as_utc=True)}
     raise TypeError(repr(obj) + ' is not JSON serializable')
 
+
 def from_json(obj):
     if '__class__' in obj:
         if obj['__class__'] == 'bytearray':
@@ -380,6 +400,7 @@ def from_json(obj):
             from calibre.utils.iso8601 import parse_iso8601
             return parse_iso8601(obj['__value__'], assume_utc=True)
     return obj
+
 
 class JSONConfig(XMLConfig):
 
@@ -407,6 +428,7 @@ class JSONConfig(XMLConfig):
         dict.__setitem__(self, key, val)
         self.commit()
 
+
 class DevicePrefs:
 
     def __init__(self, global_prefs):
@@ -419,6 +441,5 @@ class DevicePrefs:
     def __getitem__(self, key):
         return self.overrides.get(key, self.global_prefs[key])
 
+
 device_prefs = DevicePrefs(prefs)
-
-

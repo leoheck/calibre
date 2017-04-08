@@ -13,6 +13,8 @@ from PyQt5.Qt import (QWidget, QGridLayout, QGroupBox, QListView, Qt, QSpinBox,
         QDoubleSpinBox, QCheckBox, QLineEdit, QComboBox, QLabel)
 
 from calibre.gui2.preferences.metadata_sources import FieldsModel as FM
+from calibre.utils.icu import sort_key
+
 
 class FieldsModel(FM):  # {{{
 
@@ -50,6 +52,7 @@ class FieldsModel(FM):  # {{{
         self.prefs['ignore_fields'] = list(ignored_fields.union(changed))
 
 # }}}
+
 
 class ConfigWidget(QWidget):
 
@@ -97,7 +100,9 @@ class ConfigWidget(QWidget):
             widget.setChecked(bool(val))
         elif opt.type == 'choices':
             widget = QComboBox(self)
-            for key, label in opt.choices.iteritems():
+            items = list(opt.choices.iteritems())
+            items.sort(key=lambda (k, v): sort_key(v))
+            for key, label in items:
                 widget.addItem(label, (key))
             idx = widget.findData((val))
             widget.setCurrentIndex(idx)
@@ -128,5 +133,3 @@ class ConfigWidget(QWidget):
                 idx = w.currentIndex()
                 val = unicode(w.itemData(idx) or '')
             self.plugin.prefs[w.opt.name] = val
-
-

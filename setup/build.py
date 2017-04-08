@@ -9,13 +9,15 @@ __docformat__ = 'restructuredtext en'
 import textwrap, os, shlex, subprocess, glob, shutil, re, sys, json
 from collections import namedtuple
 
-from setup import Command, islinux, isbsd, isosx, SRC, iswindows, __version__
-isunix = islinux or isosx or isbsd
+from setup import Command, islinux, isbsd, isosx, ishaiku, SRC, iswindows, __version__
+isunix = islinux or isosx or isbsd or ishaiku
 
 py_lib = os.path.join(sys.prefix, 'libs', 'python%d%d.lib' % sys.version_info[:2])
 
+
 def absolutize(paths):
     return list(set([x if os.path.isabs(x) else os.path.join(SRC, x.replace('/', os.sep)) for x in paths]))
+
 
 class Extension(object):
 
@@ -79,15 +81,17 @@ def is_ext_allowed(ext):
     only = ext.get('only', '')
     if only:
         only = only.split()
-        q = 'windows' if iswindows else 'osx' if isosx else 'bsd' if isbsd else 'linux'
+        q = 'windows' if iswindows else 'osx' if isosx else 'bsd' if isbsd else 'haiku' if ishaiku else 'linux'
         return q in only
     return True
+
 
 def parse_extension(ext):
     ext = ext.copy()
     ext.pop('only', None)
     kw = {}
     name = ext.pop('name')
+
     def get(k, default=''):
         ans = ext.pop(k, default)
         if iswindows:
@@ -96,6 +100,8 @@ def parse_extension(ext):
             ans = ext.pop('osx_' + k, ans)
         elif isbsd:
             ans = ext.pop('bsd_' + k, ans)
+        elif ishaiku:
+            ans = ext.pop('haiku_' + k, ans)
         else:
             ans = ext.pop('linux_' + k, ans)
         return ans
@@ -152,6 +158,12 @@ def init_env():
         cflags.append('-I'+sysconfig.get_python_inc())
         ldflags.append('-lpython'+sysconfig.get_python_version())
 
+    if ishaiku:
+        cflags.append('-lpthread')
+        ldflags.append('-shared')
+        cflags.append('-I'+sysconfig.get_python_inc())
+        ldflags.append('-lpython'+sysconfig.get_python_version())
+
     if isosx:
         cflags.append('-D_OSX')
         ldflags.extend('-bundle -undefined dynamic_lookup'.split())
@@ -181,6 +193,8 @@ def init_env():
 class Build(Command):
 
     short_description = 'Build calibre C/C++ extension modules'
+    DEFAULT_OUTPUTDIR = os.path.abspath(os.path.join(SRC, 'calibre', 'plugins'))
+    DEFAULT_BUILDDIR = os.path.abspath(os.path.join(os.path.dirname(SRC), 'build'))
 
     description = textwrap.dedent('''\
         calibre depends on several python extensions written in C/C++.
@@ -222,8 +236,8 @@ class Build(Command):
             return
         self.env = init_env()
         extensions = map(parse_extension, filter(is_ext_allowed, read_extensions()))
-        self.build_dir = os.path.abspath(opts.build_dir or os.path.join(os.path.dirname(SRC), 'build'))
-        self.output_dir = os.path.abspath(opts.output_dir or os.path.join(SRC, 'calibre', 'plugins'))
+        self.build_dir = os.path.abspath(opts.build_dir or self.DEFAULT_BUILDDIR)
+        self.output_dir = os.path.abspath(opts.output_dir or self.DEFAULT_OUTPUTDIR)
         self.obj_dir = os.path.join(self.build_dir, 'objects')
         for x in (self.output_dir, self.obj_dir):
             if not os.path.exists(x):
@@ -323,7 +337,7 @@ class Build(Command):
 
     def build_headless(self):
         from setup.parallel_build import cpu_count
-        if iswindows or isosx:
+        if iswindows or isosx or ishaiku:
             return  # Dont have headless operation on these platforms
         from setup.build_environment import glib_flags, fontconfig_flags, ft_inc_dirs, QMAKE
         from PyQt5.QtCore import QT_VERSION
@@ -358,8 +372,15 @@ class Build(Command):
             TARGET = headless
             PLUGIN_TYPE = platforms
             PLUGIN_CLASS_NAME = HeadlessIntegrationPlugin
-            load(qt_plugin)
-            QT += core-private gui-private platformsupport-private
+            QT += core-private gui-private
+            greaterThan(QT_MAJOR_VERSION, 5)|greaterThan(QT_MINOR_VERSION, 7): {{
+                TEMPLATE = lib
+                CONFIG += plugin
+                QT += theme_support-private fontdatabase_support_private service_support_private eventdispatcher_support_private
+            }} else {{
+                load(qt_plugin)
+                QT += platformsupport-private
+            }}
             HEADERS = {headers}
             SOURCES = {sources}
             OTHER_FILES = {others}
@@ -398,6 +419,7 @@ class Build(Command):
             self.check_call(cmd)
             self.info('')
         raw = open(sbf, 'rb').read().decode('utf-8')
+
         def read(x):
             ans = re.search('^%s\s*=\s*(.+)$' % x, raw, flags=re.M).group(1).strip()
             if x != 'target':
@@ -468,16 +490,13 @@ class Build(Command):
             os.chdir(cwd)
 
     def clean(self):
+        self.output_dir = self.DEFAULT_OUTPUTDIR
         extensions = map(parse_extension, filter(is_ext_allowed, read_extensions()))
         for ext in extensions:
             dest = self.dest(ext)
             for x in (dest, dest+'.manifest'):
                 if os.path.exists(x):
                     os.remove(x)
-        build_dir = self.j(self.d(self.SRC), 'build')
+        build_dir = self.DEFAULT_BUILDDIR
         if os.path.exists(build_dir):
             shutil.rmtree(build_dir)
-
-
-
-

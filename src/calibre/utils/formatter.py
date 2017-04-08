@@ -10,9 +10,11 @@ __docformat__ = 'restructuredtext en'
 
 import re, string, traceback
 
+from calibre import prints
 from calibre.constants import DEBUG
 from calibre.utils.formatter_functions import formatter_functions, compile_user_function
 from calibre.utils.config import tweaks
+
 
 class _Parser(object):
     LEX_OP  = 1
@@ -304,7 +306,9 @@ class _CompileParser(_Parser):
         else:
             self.error(_('expression is not function or constant'))
 
+
 compile_counter = 0
+
 
 class TemplateFormatter(string.Formatter):
     '''
@@ -313,7 +317,7 @@ class TemplateFormatter(string.Formatter):
 
     _validation_string = 'This Is Some Text THAT SHOULD be LONG Enough.%^&*'
 
-    # Dict to do recursion detection. It is up the the individual get_value
+    # Dict to do recursion detection. It is up to the individual get_value
     # method to use it. It is cleared when starting to format a template
     composite_values = {}
 
@@ -525,33 +529,39 @@ class TemplateFormatter(string.Formatter):
         except Exception as e:
             if DEBUG:  # and getattr(e, 'is_locking_error', False):
                 traceback.print_exc()
+                if column_name:
+                    prints('Error evaluating column named:', column_name)
             ans = error_value + ' ' + e.message
         return ans
+
 
 class ValidateFormatter(TemplateFormatter):
     '''
     Provides a formatter that substitutes the validation string for every value
     '''
+
     def get_value(self, key, args, kwargs):
         return self._validation_string
 
     def validate(self, x):
         from calibre.ebooks.metadata.book.base import Metadata
-        self.book = Metadata('')
-        return self.vformat(x, [], {})
+        return self.safe_format(x, {}, 'VALIDATE ERROR', Metadata(''))
+
 
 validation_formatter = ValidateFormatter()
+
 
 class EvalFormatter(TemplateFormatter):
     '''
     A template formatter that uses a simple dict instead of an mi instance
     '''
+
     def get_value(self, key, args, kwargs):
         if key == '':
             return ''
         key = key.lower()
         return kwargs.get(key, _('No such variable ') + key)
 
+
 # DEPRECATED. This is not thread safe. Do not use.
 eval_formatter = EvalFormatter()
-

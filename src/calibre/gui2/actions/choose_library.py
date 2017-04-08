@@ -20,9 +20,11 @@ from calibre.gui2 import (gprefs, warning_dialog, Dispatcher, error_dialog,
     question_dialog, info_dialog, open_local_file, choose_dir)
 from calibre.gui2.actions import InterfaceAction
 
+
 def db_class():
     from calibre.db.legacy import LibraryDatabase
     return LibraryDatabase
+
 
 class LibraryUsageStats(object):  # {{{
 
@@ -95,6 +97,7 @@ class LibraryUsageStats(object):  # {{{
         self.write_stats()
 # }}}
 
+
 class MovedDialog(QDialog):  # {{{
 
     def __init__(self, stats, location, parent=None):
@@ -150,6 +153,7 @@ class MovedDialog(QDialog):  # {{{
         self.newloc = newloc
         QDialog.accept(self)
 # }}}
+
 
 class BackupStatus(QDialog):  # {{{
 
@@ -489,16 +493,16 @@ class ChooseLibraryAction(InterfaceAction):
         m.stop_metadata_backup()
         db = m.db
         db.prefs.disable_setting = True
+        library_path = db.library_path
 
         d = DBCheck(self.gui, db)
         d.start()
         try:
-            d.conn.close()
+            m.close()
         except:
             pass
         d.break_cycles()
-        self.gui.library_moved(db.library_path, call_close=not
-                d.closed_orig_conn)
+        self.gui.library_moved(library_path, call_close=False)
         if d.rejected:
             return
         if d.error is None:

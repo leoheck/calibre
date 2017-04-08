@@ -5,7 +5,7 @@ __license__   = 'GPL v3'
 __copyright__ = '2010, Kovid Goyal <kovid@kovidgoyal.net>'
 __docformat__ = 'restructuredtext en'
 
-import textwrap
+import textwrap, re
 
 from PyQt5.Qt import QAbstractTableModel, QFont, Qt
 
@@ -17,6 +17,7 @@ from calibre.utils.config import ConfigProxy
 from calibre.utils.icu import numeric_sort_key
 from calibre.gui2 import gprefs
 from calibre.utils.smtp import config as smtp_prefs
+
 
 class EmailAccounts(QAbstractTableModel):  # {{{
 
@@ -147,7 +148,7 @@ class EmailAccounts(QAbstractTableModel):  # {{{
             if aval:
                 self.tags[account] = aval
         elif col == 1:
-            self.accounts[account][0] = unicode(value or '').upper()
+            self.accounts[account][0] = re.sub(r'\s+', ',', unicode(value or '').upper())
         elif col == 0:
             na = unicode(value or '')
             from email.utils import parseaddr
@@ -206,6 +207,7 @@ class EmailAccounts(QAbstractTableModel):  # {{{
             self.endResetModel()
 
 # }}}
+
 
 class ConfigWidget(ConfigWidgetBase, Ui_Form):
 
@@ -285,4 +287,3 @@ if __name__ == '__main__':
     from PyQt5.Qt import QApplication
     app = QApplication([])
     test_widget('Sharing', 'Email')
-

@@ -23,6 +23,7 @@ from calibre.ptempfile import TemporaryDirectory
 from calibre.utils.monotonic import monotonic
 is_ci = os.environ.get('CI', '').lower() == 'true'
 
+
 class LoopTest(BaseTest):
 
     def test_log_rotation(self):
@@ -56,15 +57,18 @@ class LoopTest(BaseTest):
     def test_plugins(self):
         'Test plugin semantics'
         class Plugin(object):
+
             def __init__(self):
                 self.running = Event()
                 self.event = Event()
                 self.port = None
+
             def start(self, loop):
                 self.running.set()
                 self.port = loop.bound_address[1]
                 self.event.wait()
                 self.running.clear()
+
             def stop(self):
                 self.event.set()
 
@@ -83,13 +87,18 @@ class LoopTest(BaseTest):
             server.join()
             self.ae(0, sum(int(w.is_alive()) for w in server.loop.pool.workers))
         # Test shutdown with hung worker
-        with TestServer(lambda data:time.sleep(1000), worker_count=3, shutdown_timeout=0.01, timeout=0.01) as server:
+        block = Event()
+        with TestServer(lambda data:block.wait(), worker_count=3, shutdown_timeout=0.01, timeout=0.01) as server:
             pool = server.loop.pool
             self.ae(3, sum(int(w.is_alive()) for w in pool.workers))
             conn = server.connect()
             conn.request('GET', '/')
             with self.assertRaises(socket.timeout):
-                conn.getresponse()
+                res = conn.getresponse()
+                if str(res.status) == str(httplib.REQUEST_TIMEOUT):
+                    raise socket.timeout('Timeout')
+                raise Exception('Got unexpected response: code: %s %s headers: %r data: %r' % (
+                    res.status, res.reason, res.getheaders(), res.read()))
             self.ae(pool.busy, 1)
             server.loop.log.filter_level = server.loop.log.ERROR
             server.loop.stop()
@@ -124,6 +133,7 @@ class LoopTest(BaseTest):
     def test_ring_buffer(self):
         'Test the ring buffer used for reads'
         class FakeSocket(object):
+
             def __init__(self, data):
                 self.data = data
 
@@ -133,8 +143,10 @@ class LoopTest(BaseTest):
                 return sz
         from calibre.srv.loop import ReadBuffer, READ, WRITE
         buf = ReadBuffer(100)
+
         def write(data):
             return buf.recv_from(FakeSocket(data))
+
         def set(data, rpos, wpos, state):
             buf.ba = bytearray(data)
             buf.buf = memoryview(buf.ba)
@@ -227,11 +239,14 @@ class LoopTest(BaseTest):
         'Test the jobs manager'
         from calibre.srv.jobs import JobsManager
         O = namedtuple('O', 'max_jobs max_job_time')
+
         class FakeLog(list):
+
             def error(self, *args):
                 self.append(' '.join(args))
         s = ('waiting', 'running')
         jm = JobsManager(O(1, 5), FakeLog())
+
         def job_status(jid):
             return jm.job_status(jid)[0]
 

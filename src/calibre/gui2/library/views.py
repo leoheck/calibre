@@ -28,6 +28,7 @@ from calibre.gui2.library import DEFAULT_SORT
 from calibre.constants import filesystem_encoding
 from calibre import force_unicode
 
+
 class HeaderView(QHeaderView):  # {{{
 
     def __init__(self, *args):
@@ -110,6 +111,7 @@ class HeaderView(QHeaderView):  # {{{
         painter.restore()
 # }}}
 
+
 class PreserveViewState(object):  # {{{
 
     '''
@@ -171,6 +173,7 @@ class PreserveViewState(object):  # {{{
             self.__enter__()
             return {x:getattr(self, x) for x in ('selected_ids', 'current_id',
                 'vscroll', 'hscroll')}
+
         def fset(self, state):
             for k, v in state.iteritems():
                 setattr(self, k, v)
@@ -178,6 +181,7 @@ class PreserveViewState(object):  # {{{
         return property(fget=fget, fset=fset)
 
 # }}}
+
 
 @setup_dnd_interface
 class BooksView(QTableView):  # {{{
@@ -224,6 +228,7 @@ class BooksView(QTableView):  # {{{
         self.setWordWrap(False)
 
         self.rating_delegate = RatingDelegate(self)
+        self.half_rating_delegate = RatingDelegate(self, is_half_star=True)
         self.timestamp_delegate = DateDelegate(self)
         self.pubdate_delegate = PubDateDelegate(self)
         self.last_modified_delegate = DateDelegate(self,
@@ -279,6 +284,7 @@ class BooksView(QTableView):  # {{{
         self._model.about_to_be_sorted.connect(self.about_to_be_sorted)
         self._model.sorting_done.connect(self.sorting_done,
                 type=Qt.QueuedConnection)
+        self.set_row_header_visibility()
 
     # Column Header Context Menu {{{
     def column_header_context_handler(self, action=None, column=None):
@@ -740,6 +746,7 @@ class BooksView(QTableView):  # {{{
         if bool(old_marked) == bool(current_marked):
             changed = old_marked | current_marked
             i = self.model().db.data.id_to_index
+
             def f(x):
                 try:
                     return i(x)
@@ -756,13 +763,18 @@ class BooksView(QTableView):  # {{{
             self.model().set_row_decoration(current_marked)
             self.row_header.headerDataChanged(Qt.Vertical, 0, self.row_header.count()-1)
             self.row_header.geometriesChanged.emit()
+            self.set_row_header_visibility()
+
+    def set_row_header_visibility(self):
+        visible = self.model().row_decoration is not None or gprefs['row_numbers_in_book_list']
+        self.row_header.setVisible(visible)
 
     def database_changed(self, db):
         db.data.add_marked_listener(self.marked_changed_listener)
         for i in range(self.model().columnCount(None)):
-            if self.itemDelegateForColumn(i) in (self.rating_delegate,
-                    self.timestamp_delegate, self.pubdate_delegate,
-                    self.last_modified_delegate, self.languages_delegate):
+            if self.itemDelegateForColumn(i) in (
+                    self.rating_delegate, self.timestamp_delegate, self.pubdate_delegate,
+                    self.last_modified_delegate, self.languages_delegate, self.half_rating_delegate):
                 self.setItemDelegateForColumn(i, self.itemDelegate())
 
         cm = self.column_map
@@ -799,7 +811,8 @@ class BooksView(QTableView):  # {{{
                 elif cc['datatype'] == 'bool':
                     self.setItemDelegateForColumn(cm.index(colhead), self.cc_bool_delegate)
                 elif cc['datatype'] == 'rating':
-                    self.setItemDelegateForColumn(cm.index(colhead), self.rating_delegate)
+                    d = self.half_rating_delegate if cc['display'].get('allow_half_stars', False) else self.rating_delegate
+                    self.setItemDelegateForColumn(cm.index(colhead), d)
                 elif cc['datatype'] == 'composite':
                     self.setItemDelegateForColumn(cm.index(colhead), self.cc_template_delegate)
                 elif cc['datatype'] == 'enumeration':
@@ -827,10 +840,6 @@ class BooksView(QTableView):  # {{{
 
     def contextMenuEvent(self, event):
         from calibre.gui2.main_window import clone_menu
-        sac = self.gui.iactions['Sort By']
-        sort_added = tuple(ac for ac in self.context_menu.actions() if ac is sac.qaction)
-        if sort_added:
-            sac.update_menu()
         m = clone_menu(self.context_menu) if islinux else self.context_menu
         m.popup(event.globalPos())
         event.accept()
@@ -1024,6 +1033,7 @@ class BooksView(QTableView):  # {{{
             except:
                 pass
             return None
+
         def fset(self, val):
             if val is None:
                 return
@@ -1114,6 +1124,7 @@ class BooksView(QTableView):  # {{{
 
 # }}}
 
+
 class DeviceBooksView(BooksView):  # {{{
 
     is_library_view = False
@@ -1126,10 +1137,15 @@ class DeviceBooksView(BooksView):  # {{{
         self.can_add_columns = False
         self.resize_on_select = False
         self.rating_delegate = None
+        self.half_rating_delegate = None
         for i in range(10):
             self.setItemDelegateForColumn(i, TextDelegate(self))
         self.setDragDropMode(self.NoDragDrop)
         self.setAcceptDrops(False)
+        self.set_row_header_visibility()
+
+    def set_row_header_visibility(self):
+        self.row_header.setVisible(gprefs['row_numbers_in_book_list'])
 
     def drag_data(self):
         m = self.model()
@@ -1187,4 +1203,3 @@ class DeviceBooksView(BooksView):  # {{{
         self.drag_allowed = supports_backloading
 
 # }}}
-

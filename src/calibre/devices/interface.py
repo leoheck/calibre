@@ -7,6 +7,7 @@ from calibre import prints
 from calibre.constants import iswindows
 from calibre.customize import Plugin
 
+
 class DevicePlugin(Plugin):
     """
     Defines the interface that should be implemented by backends that
@@ -38,11 +39,6 @@ class DevicePlugin(Plugin):
 
     #: Height for thumbnails on the device
     THUMBNAIL_HEIGHT = 68
-    #: Width for thumbnails on the device. Setting this will force thumbnails
-    #: to this size, not preserving aspect ratio. If it is not set, then
-    #: the aspect ratio will be preserved and the thumbnail will be no higher
-    #: than THUMBNAIL_HEIGHT
-    # THUMBNAIL_WIDTH = 68
 
     #: Compression quality for thumbnails. Set this closer to 100 to have better
     #: quality thumbnails with fewer compression artifacts. Of course, the
@@ -97,7 +93,7 @@ class DevicePlugin(Plugin):
     #: managing a blacklist of devices, a list of ejected devices and so forth.
     #: calibre will periodically call the detect_managed_devices() method and
     #: if it returns a detected device, calibre will call open(). open() will
-    #: be called every time a device is returned even is previous calls to open()
+    #: be called every time a device is returned even if previous calls to open()
     #: failed, therefore the driver must maintain its own blacklist of failed
     #: devices. Similarly, when ejecting, calibre will call eject() and then
     #: assuming the next call to detect_managed_devices() returns None, it will
@@ -538,7 +534,7 @@ class DevicePlugin(Plugin):
 
     def startup(self):
         '''
-        Called when calibre is is starting the device. Do any initialization
+        Called when calibre is starting the device. Do any initialization
         required. Note that multiple instances of the class can be instantiated,
         and thus __init__ can be called multiple times, but only one instance
         will have this method called. This method is called on the device
@@ -712,6 +708,7 @@ class DevicePlugin(Plugin):
         '''
         return (None, (None, False))
 
+
 class BookList(list):
     '''
     A list of books. Each Book object must have the fields
@@ -766,6 +763,7 @@ class BookList(list):
         '''
         raise NotImplementedError()
 
+
 class CurrentlyConnectedDevice(object):
 
     def __init__(self):
@@ -774,6 +772,7 @@ class CurrentlyConnectedDevice(object):
     @property
     def device(self):
         return self._device
+
 
 # A device driver can check if a device is currently connected to calibre using
 # the following code::

@@ -18,11 +18,12 @@ from calibre.srv.metadata import book_as_json
 from calibre.srv.render_book import RENDER_VERSION
 from calibre.srv.errors import HTTPNotFound
 from calibre.srv.routes import endpoint, json
-from calibre.srv.utils import get_library_data
+from calibre.srv.utils import get_library_data, get_db
 
 cache_lock = RLock()
 queued_jobs = {}
 failed_jobs = {}
+
 
 def abspath(x):
     x = os.path.abspath(x)
@@ -30,7 +31,10 @@ def abspath(x):
         x = '\\\\?\\' + os.path.abspath(x)
     return x
 
+
 _books_cache_dir = None
+
+
 def books_cache_dir():
     global _books_cache_dir
     if _books_cache_dir:
@@ -47,10 +51,12 @@ def books_cache_dir():
 
 
 def book_hash(library_uuid, book_id, fmt, size, mtime):
-    raw = dumps((library_uuid, book_id, fmt.upper(), size, mtime), RENDER_VERSION)
+    raw = dumps((library_uuid, book_id, fmt.upper(), size, mtime, RENDER_VERSION))
     return sha1(raw).hexdigest().decode('ascii')
 
+
 staging_cleaned = False
+
 
 def safe_remove(x, is_file=None):
     if is_file is None:
@@ -78,7 +84,9 @@ def queue_job(ctx, copy_format_to, bhash, fmt, book_id, size, mtime):
     queued_jobs[bhash] = job_id
     return job_id
 
+
 last_final_clean_time = 0
+
 
 def clean_final(interval=24 * 60 * 60):
     global last_final_clean_time
@@ -95,6 +103,7 @@ def clean_final(interval=24 * 60 * 60):
         if now - tm >= interval:
             # This book has not been accessed for a long time, delete it
             safe_remove(x)
+
 
 def job_done(job):
     with cache_lock:
@@ -113,6 +122,7 @@ def job_done(job):
             except Exception:
                 import traceback
                 failed_jobs[bhash] = (False, traceback.format_exc())
+
 
 @endpoint('/book-manifest/{book_id}/{fmt}', postprocess=json, types={'book_id':int})
 def book_manifest(ctx, rd, book_id, fmt):
@@ -137,6 +147,8 @@ def book_manifest(ctx, rd, book_id, fmt):
                 with lopen(mpath, 'rb') as f:
                     ans = jsonlib.load(f)
                 ans['metadata'] = book_as_json(db, book_id)
+                user = rd.username or None
+                ans['last_read_positions'] = db.get_last_read_positions(book_id, fmt, user)
                 return ans
             except EnvironmentError as e:
                 if e.errno != errno.ENOENT:
@@ -149,6 +161,7 @@ def book_manifest(ctx, rd, book_id, fmt):
                 job_id = queue_job(ctx, partial(db.copy_format_to, book_id, fmt), bhash, fmt, book_id, size, mtime)
     status, result, tb, aborted = ctx.job_status(job_id)
     return {'aborted': aborted, 'traceback':tb, 'job_status':status, 'job_id':job_id}
+
 
 @endpoint('/book-file/{book_id}/{fmt}/{size}/{mtime}/{+name}', types={'book_id':int, 'size':int, 'mtime':int})
 def book_file(ctx, rd, book_id, fmt, size, mtime, name):
@@ -167,8 +180,51 @@ def book_file(ctx, rd, book_id, fmt, size, mtime, name):
             raise
         raise HTTPNotFound('No book file with hash: %s and name: %s' % (bhash, name))
 
+
+@endpoint('/book-get-last-read-position/{library_id}/{+which}', postprocess=json)
+def get_last_read_position(ctx, rd, library_id, which):
+    '''
+    Get last read position data for the specified books, where which is of the form:
+    book_id1-fmt1_book_id2-fmt2,...
+    '''
+    db = get_db(ctx, rd, library_id)
+    user = rd.username or None
+    ans = {}
+    allowed_book_ids = ctx.allowed_book_ids(rd, db)
+    for item in which.split('_'):
+        book_id, fmt = item.partition('-')[::2]
+        try:
+            book_id = int(book_id)
+        except Exception:
+            continue
+        if book_id not in allowed_book_ids:
+            continue
+        key = '{}:{}'.format(book_id, fmt)
+        ans[key] = db.get_last_read_positions(book_id, fmt, user)
+    return ans
+
+
+@endpoint('/book-set-last-read-position/{library_id}/{book_id}/{+fmt}', types={'book_id': int}, methods=('POST',))
+def set_last_read_position(ctx, rd, library_id, book_id, fmt):
+    db = get_db(ctx, rd, library_id)
+    user = rd.username or None
+    allowed_book_ids = ctx.allowed_book_ids(rd, db)
+    if book_id not in allowed_book_ids:
+        raise HTTPNotFound('No book with id {} found'.format(book_id))
+    try:
+        data = jsonlib.load(rd.request_body_file)
+        device, cfi, pos_frac = data['device'], data['cfi'], data['pos_frac']
+    except Exception:
+        raise HTTPNotFound('Invalid data')
+    db.set_last_read_position(
+        book_id, fmt, user=user, device=device, cfi=cfi or None, pos_frac=pos_frac)
+    rd.outheaders['Content-type'] = 'text/plain'
+    return b''
+
+
 mathjax_lock = Lock()
 mathjax_manifest = None
+
 
 def get_mathjax_manifest(tdir=None):
     global mathjax_manifest
@@ -186,11 +242,13 @@ def get_mathjax_manifest(tdir=None):
             zf.close(), f.close()
         return mathjax_manifest
 
+
 def manifest_as_json():
     ans = jsonlib.dumps(get_mathjax_manifest(), ensure_ascii=False)
     if not isinstance(ans, bytes):
         ans = ans.encode('utf-8')
     return ans
+
 
 @endpoint('/mathjax/{+which=""}', auth_required=False)
 def mathjax(ctx, rd, which):

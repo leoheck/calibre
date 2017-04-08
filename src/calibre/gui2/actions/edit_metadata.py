@@ -29,7 +29,7 @@ from calibre.ebooks.metadata.sources.prefs import msprefs
 class EditMetadataAction(InterfaceAction):
 
     name = 'Edit Metadata'
-    action_spec = (_('Edit metadata'), 'edit_input.png', _('Change the title/author/cover etc. of books'), _('E'))
+    action_spec = (_('Edit'), 'edit_input.png', _('Change the title/author/cover etc. of books'), _('E'))
     action_type = 'current'
     action_add_menu = True
 
@@ -110,6 +110,8 @@ class EditMetadataAction(InterfaceAction):
             db = self.gui.library_view.model().db
             ids = [db.id(row.row()) for row in rows]
         from calibre.gui2.metadata.bulk_download import start_download
+        from calibre.ebooks.metadata.sources.update import update_sources
+        update_sources()
         start_download(self.gui, ids,
                 Dispatcher(self.metadata_downloaded),
                 ensure_fields=ensure_fields)
@@ -132,14 +134,17 @@ class EditMetadataAction(InterfaceAction):
         if all_failed:
             num = len(failed_ids | failed_covers)
             self.cleanup_bulk_download(tdir)
-            return error_dialog(self.gui, _('Download failed'),
-            _('Failed to download metadata or covers for any of the %d'
-               ' book(s).') % num, det_msg=det_msg, show=True)
+            return error_dialog(self.gui, _('Download failed'), ngettext(
+                'Failed to download metadata or cover for the selected book.',
+                'Failed to download metadata or covers for any of the {} books.', num
+            ).format(num), det_msg=det_msg, show=True)
 
         self.gui.status_bar.show_message(_('Metadata download completed'), 3000)
 
-        msg = '<p>' + _('Finished downloading metadata for <b>%d book(s)</b>. '
-            'Proceed with updating the metadata in your library?')%len(id_map)
+        msg = '<p>' + ngettext(
+            'Finished downloading metadata for the selected book.',
+            'Finished downloading metadata for <b>{} books</b>.', len(id_map)).format(len(id_map)) + ' ' + \
+            _('Proceed with updating the metadata in your library?')
 
         show_copy_button = False
         checkbox_msg = None

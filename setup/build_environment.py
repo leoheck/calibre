@@ -9,7 +9,7 @@ __docformat__ = 'restructuredtext en'
 import os, subprocess, re, sys, sysconfig
 from distutils.spawn import find_executable
 
-from setup import isosx, iswindows, is64bit, islinux
+from setup import isosx, iswindows, is64bit, islinux, ishaiku
 is64bit
 
 NMAKE = RC = msvc = MT = win_inc = win_lib = None
@@ -37,7 +37,7 @@ QMAKE = os.environ.get('QMAKE', QMAKE)
 
 PKGCONFIG = find_executable('pkg-config')
 PKGCONFIG = os.environ.get('PKG_CONFIG', PKGCONFIG)
-if islinux and not PKGCONFIG:
+if (islinux or ishaiku) and not PKGCONFIG:
     raise SystemExit('Failed to find pkg-config on your system. You can use the environment variable PKG_CONFIG to point to the pkg-config executable')
 
 def run_pkgconfig(name, envvar, default, flag, prefix):
@@ -97,8 +97,8 @@ def get_sip_dir():
 pyqt['pyqt_sip_dir'] = get_sip_dir()
 pyqt['sip_inc_dir'] = os.environ.get('SIP_INC_DIR', sysconfig.get_path('include'))
 
-glib_flags = subprocess.check_output([PKGCONFIG, '--libs', 'glib-2.0']).strip() if islinux else ''
-fontconfig_flags = subprocess.check_output([PKGCONFIG, '--libs', 'fontconfig']).strip() if islinux else ''
+glib_flags = subprocess.check_output([PKGCONFIG, '--libs', 'glib-2.0']).strip() if islinux or ishaiku else ''
+fontconfig_flags = subprocess.check_output([PKGCONFIG, '--libs', 'fontconfig']).strip() if islinux or ishaiku else ''
 qt_inc = pyqt['inc']
 qt_lib = pyqt['lib']
 ft_lib_dirs = []
@@ -121,7 +121,7 @@ QT_DLLS = ['Qt5' + x for x in (
 'WebKit', 'WebKitWidgets', 'Widgets',  'Multimedia', 'MultimediaWidgets', 'Xml',  # 'XmlPatterns',
 )]
 QT_PLUGINS = ('imageformats', 'audio', 'iconengines', 'mediaservice', 'platforms', 'playlistformats', 'printsupport', 'sqldrivers')
-if islinux:
+if islinux or ishaiku:
     # platformthemes cause crashes in Ubuntu
     QT_PLUGINS += ('platforminputcontexts', 'generic',)
 
@@ -160,7 +160,8 @@ if iswindows:
     podofo_inc = os.path.join(sw_inc_dir, 'podofo')
     podofo_lib = sw_lib_dir
 elif isosx:
-    QT_DLLS += ['Qt5DBus']
+    QT_DLLS += ['Qt5DBus', 'Qt5MacExtras']
+    PYQT_MODULES += ('QtMacExtras',)
     QT_FRAMEWORKS = [x.replace('5', '') for x in QT_DLLS]
     sw = os.environ.get('SW', os.path.expanduser('~/sw'))
     podofo_inc = os.path.join(sw, 'include', 'podofo')
@@ -173,8 +174,8 @@ elif isosx:
     openssl_inc_dirs = [os.path.join(SSL, 'include')]
     openssl_lib_dirs = [os.path.join(SSL, 'lib')]
 else:
-    QT_DLLS += ['Qt5DBus', 'Qt5XcbQpa']
-    # PYQT_MODULES += ('QtDBus',)
+    QT_DLLS += ['Qt5DBus', 'Qt5XcbQpa', 'Qt5X11Extras']
+    PYQT_MODULES += ('QtX11Extras',)
     ft_inc_dirs = pkgconfig_include_dirs('freetype2', 'FT_INC_DIR',
             '/usr/include/freetype2')
     ft_lib_dirs = pkgconfig_lib_dirs('freetype2', 'FT_LIB_DIR', '/usr/lib')

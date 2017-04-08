@@ -26,7 +26,7 @@ from calibre.ebooks.oeb.polish.cover import set_epub_cover, find_cover_image
 from calibre.ebooks.oeb.polish.css import transform_css
 from calibre.ebooks.oeb.polish.utils import extract
 from calibre.ebooks.css_transform_rules import StyleDeclaration
-from calibre.ebooks.oeb.polish.toc import get_toc
+from calibre.ebooks.oeb.polish.toc import get_toc, get_landmarks
 from calibre.ebooks.oeb.polish.utils import guess_type
 from calibre.utils.short_uuid import uuid4
 from calibre.utils.logging import default_log
@@ -35,11 +35,14 @@ RENDER_VERSION = 1
 
 BLANK_JPEG = b'\xff\xd8\xff\xdb\x00C\x00\x03\x02\x02\x02\x02\x02\x03\x02\x02\x02\x03\x03\x03\x03\x04\x06\x04\x04\x04\x04\x04\x08\x06\x06\x05\x06\t\x08\n\n\t\x08\t\t\n\x0c\x0f\x0c\n\x0b\x0e\x0b\t\t\r\x11\r\x0e\x0f\x10\x10\x11\x10\n\x0c\x12\x13\x12\x10\x13\x0f\x10\x10\x10\xff\xc9\x00\x0b\x08\x00\x01\x00\x01\x01\x01\x11\x00\xff\xcc\x00\x06\x00\x10\x10\x05\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xd2\xcf \xff\xd9'  # noqa
 
+
 def encode_component(x):
     return standard_b64encode(x.encode('utf-8')).decode('ascii')
 
+
 def decode_component(x):
     return standard_b64decode(x).decode('utf-8')
+
 
 def encode_url(name, frag=''):
     name = encode_component(name)
@@ -47,12 +50,15 @@ def encode_url(name, frag=''):
         name += '#' + frag
     return name
 
+
 def decode_url(x):
     parts = x.split('#', 1)
     return decode_component(parts[0]), (parts[1] if len(parts) > 1 else '')
 
+
 absolute_units = frozenset('px mm cm pt in pc q'.split())
 length_factors = {'mm':2.8346456693, 'cm':28.346456693, 'in': 72, 'pc': 12, 'q':0.708661417325}
+
 
 def convert_fontsize(length, unit, base_font_size=16.0, dpi=96.0):
     ' Convert font size to rem so that font size scaling works. Assumes the document has the specified base font size in px '
@@ -61,6 +67,7 @@ def convert_fontsize(length, unit, base_font_size=16.0, dpi=96.0):
     pt_to_px = dpi / 72.0
     pt_to_rem = pt_to_px / base_font_size
     return length * length_factors.get(unit, 1) * pt_to_rem
+
 
 def transform_declaration(decl):
     decl = StyleDeclaration(decl)
@@ -82,12 +89,14 @@ def transform_declaration(decl):
                 decl.change_property(prop, parent_prop, str(l) + 'rem')
     return changed
 
+
 def transform_sheet(sheet):
     changed = False
     for rule in sheet.cssRules.rulesOfType(CSSRule.STYLE_RULE):
         if transform_declaration(rule.style):
             changed = True
     return changed
+
 
 def check_for_maths(root):
     for x in root.iterdescendants('{*}math'):
@@ -97,6 +106,7 @@ def check_for_maths(root):
             return True
     return False
 
+
 def has_ancestor(elem, q):
     while elem is not None:
         elem = elem.getparent()
@@ -104,16 +114,34 @@ def has_ancestor(elem, q):
             return True
     return False
 
+
+def anchor_map(root):
+    ans = []
+    seen = set()
+    for elem in root.xpath('//*[@id or @name]'):
+        eid = elem.get('id')
+        if not eid and elem.tag.endswith('}a'):
+            eid = elem.get('name')
+            if eid:
+                elem.set('id', eid)
+        if eid and eid not in seen:
+            ans.append(eid)
+            seen.add(eid)
+    return ans
+
+
 def get_length(root):
     strip_space = re.compile(r'\s+')
     ans = 0
+    ignore_tags = frozenset('script style title noscript'.split())
+
     def count(elem):
         num = 0
         tname = elem.tag.rpartition('}')[-1].lower()
-        if elem.text and tname not in 'script style':
-            num += len(strip_space.sub(elem.text, ''))
+        if elem.text and tname not in ignore_tags:
+            num += len(strip_space.sub('', elem.text))
         if elem.tail:
-            num += len(strip_space.sub(elem.tail, ''))
+            num += len(strip_space.sub('', elem.tail))
         if tname in 'img svg':
             num += 2000
         return num
@@ -123,6 +151,22 @@ def get_length(root):
         for elem in body.iterdescendants('*'):
             ans += count(elem)
     return ans
+
+
+def toc_anchor_map(toc):
+    ans = defaultdict(list)
+    seen_map = defaultdict(set)
+
+    def process_node(node):
+        name = node['dest']
+        if name and node['id'] not in seen_map[name]:
+            ans[name].append({'id':node['id'], 'frag':node['frag']})
+            seen_map[name].add(node['id'])
+        tuple(map(process_node, node['children']))
+
+    process_node(toc)
+    return dict(ans)
+
 
 class Container(ContainerBase):
 
@@ -138,11 +182,15 @@ class Container(ContainerBase):
             name == 'mimetype'
         }
         raster_cover_name, titlepage_name = self.create_cover_page(input_fmt.lower())
+        toc = get_toc(self).to_dict(count())
+        spine = [name for name, is_linear in self.spine_names]
+        spineq = frozenset(spine)
+        landmarks = [l for l in get_landmarks(self) if l['dest'] in spineq]
 
         self.book_render_data = data = {
             'version': RENDER_VERSION,
-            'toc':get_toc(self).as_dict,
-            'spine':[name for name, is_linear in self.spine_names],
+            'toc':toc,
+            'spine':spine,
             'link_uid': uuid4(),
             'book_hash': book_hash,
             'is_comic': input_fmt.lower() in {'cbc', 'cbz', 'cbr', 'cb7'},
@@ -151,6 +199,8 @@ class Container(ContainerBase):
             'has_maths': False,
             'total_length': 0,
             'spine_length': 0,
+            'toc_anchor_map': toc_anchor_map(toc),
+            'landmarks': landmarks,
         }
         # Mark the spine as dirty since we have to ensure it is normalized
         for name in data['spine']:
@@ -158,6 +208,7 @@ class Container(ContainerBase):
         self.transform_css()
         self.virtualized_names = set()
         self.virtualize_resources()
+
         def manifest_data(name):
             mt = (self.mime_map.get(name) or 'application/octet-stream').lower()
             ans = {
@@ -175,6 +226,7 @@ class Container(ContainerBase):
                 ans['has_maths'] = hm = check_for_maths(root)
                 if hm:
                     self.book_render_data['has_maths'] = True
+                ans['anchor_map'] = anchor_map(root)
             return ans
         data['files'] = {name:manifest_data(name) for name in set(self.name_path_map) - excluded_names}
         self.commit()
@@ -313,6 +365,7 @@ class Container(ContainerBase):
         root = self.parsed(name)
         return json.dumps(html_as_dict(root), ensure_ascii=False, separators=(',', ':')).encode('utf-8')
 
+
 def split_name(name):
     l, r = name.partition('}')[::2]
     if r:
@@ -329,6 +382,7 @@ for k in 'figure term definition directory list list-item table row cell'.split(
     EPUB_TYPE_MAP[k] = k
 
 EPUB_TYPE_MAP['help'] = 'doc-tip'
+
 
 def map_epub_type(epub_type, attribs, elem):
     val = EPUB_TYPE_MAP.get(epub_type.lower())
@@ -350,6 +404,7 @@ def map_epub_type(epub_type, attribs, elem):
             attribs.append(['role', role])
         else:
             attribs[i] = ['role', role]
+
 
 def serialize_elem(elem, nsmap):
     ns, name = split_name(elem.tag)
@@ -390,6 +445,7 @@ def serialize_elem(elem, nsmap):
         ans['a'] = attribs
     return ans
 
+
 def ensure_head(root):
     # Make sure we have only a single <head>
     heads = list(root.iterchildren(XHTML('head')))
@@ -404,6 +460,7 @@ def ensure_head(root):
             extract(eh)
         return head
     return heads[0]
+
 
 def ensure_body(root):
     # Make sure we have only a single <body>
@@ -421,6 +478,7 @@ def ensure_body(root):
                 div.append(child)
             body.append(div)
 
+
 def html_as_dict(root):
     ensure_body(root)
     for child in tuple(root.iterchildren('*')):
@@ -434,7 +492,7 @@ def html_as_dict(root):
     stack = [(root, tree)]
     while stack:
         elem, node = stack.pop()
-        for i, child in enumerate(elem.iterchildren('*')):
+        for child in elem.iterchildren('*'):
             cnode = serialize_elem(child, nsmap)
             if cnode is not None:
                 tags.append(cnode)
@@ -444,8 +502,10 @@ def html_as_dict(root):
     ns_map = [ns for ns, nsnum in sorted(nsmap.iteritems(), key=lambda x: x[1])]
     return {'ns_map':ns_map, 'tag_map':tags, 'tree':tree}
 
+
 def render(pathtoebook, output_dir, book_hash=None):
     Container(pathtoebook, output_dir, book_hash=book_hash)
+
 
 if __name__ == '__main__':
     render(sys.argv[-2], sys.argv[-1])

@@ -1,30 +1,38 @@
 #!/usr/bin/env python2
 # vim:fileencoding=utf-8
-from __future__ import (unicode_literals, division, absolute_import,
-                        print_function)
+# License: GPLv3 Copyright: 2015, Kovid Goyal <kovid at kovidgoyal.net>
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-__license__ = 'GPL v3'
-__copyright__ = '2015, Kovid Goyal <kovid at kovidgoyal.net>'
-
-import os, sys, atexit, errno, subprocess, glob, shutil, json, re
-from io import BytesIO
-from threading import local
+import atexit
+import errno
+import glob
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
 from functools import partial
-from threading import Thread
-from Queue import Queue, Empty
+from io import BytesIO
+from Queue import Empty, Queue
+from threading import Thread, local
 
+from calibre import force_unicode
+from calibre.constants import __appname__, __version__, cache_dir
+from calibre.utils.terminal import ANSIStream
 from duktape import Context, JSError, to_python
 from lzma.xz import compress, decompress
-from calibre import force_unicode
-from calibre.constants import cache_dir, __appname__, __version__
-from calibre.utils.terminal import ANSIStream
+
 
 COMPILER_PATH = 'rapydscript/compiler.js.xz'
+
 
 def abspath(x):
     return os.path.realpath(os.path.abspath(x))
 
 # Update RapydScript {{{
+
+
 def update_rapydscript():
     d = os.path.dirname
     base = d(d(d(d(d(abspath(__file__))))))
@@ -44,10 +52,14 @@ def update_rapydscript():
 # }}}
 
 # Compiler {{{
+
+
 tls = local()
+
 
 def to_dict(obj):
     return dict(zip(obj.keys(), obj.values()))
+
 
 def compiler():
     c = getattr(tls, 'compiler', None)
@@ -59,13 +71,17 @@ def compiler():
         c.eval(buf.getvalue(), fname=COMPILER_PATH, noreturn=True)
     return c
 
+
 class CompileFailure(ValueError):
     pass
+
 
 def default_lib_dir():
     return P('rapydscript/lib', allow_user_override=False)
 
+
 _cache_dir = None
+
 
 def module_cache_dir():
     global _cache_dir
@@ -117,7 +133,9 @@ def compile_pyj(data, filename='<stdin>', beautify=True, private_scope=True, lib
         raise CompileFailure(result.stack)
     raise CompileFailure(repr(presult))
 
+
 has_external_compiler = None
+
 
 def detect_external_compiler():
     from calibre.utils.filenames import find_executable_in_path
@@ -135,6 +153,7 @@ def detect_external_compiler():
         if ver >= (0, 7, 5):
             return rs
     return False
+
 
 def compile_fast(data, filename=None, beautify=True, private_scope=True, libdir=None, omit_baselib=False):
     global has_external_compiler
@@ -158,6 +177,21 @@ def compile_fast(data, filename=None, beautify=True, private_scope=True, libdir=
     if p.wait() != 0:
         raise CompileFailure(force_unicode(stderr, 'utf-8'))
     return js.decode('utf-8')
+
+
+def create_manifest(html):
+    import hashlib
+    from calibre.library.field_metadata import category_icon_map
+    h = hashlib.sha256(html)
+    for ci in category_icon_map.itervalues():
+        h.update(I(ci, data=True))
+    icons = {'icon/' + x for x in category_icon_map.itervalues()}
+    icons.add('favicon.png')
+    h.update(I('lt.png', data=True))
+    manifest = '\n'.join(sorted(icons))
+    return 'CACHE MANIFEST\n# {}\n{}\n\nNETWORK:\n*'.format(
+        h.hexdigest(), manifest).encode('utf-8')
+
 
 def compile_srv():
     d = os.path.dirname
@@ -184,12 +218,17 @@ def compile_srv():
         js = compile_fast(f.read(), fname).replace('__RENDER_VERSION__', rv, 1).replace('__MATHJAX_VERSION__', mathjax_version, 1).encode('utf-8')
     with lopen(os.path.join(base, 'index.html'), 'rb') as f:
         html = f.read().replace(b'RESET_STYLES', reset, 1).replace(b'ICONS', icons, 1).replace(b'MAIN_JS', js, 1)
+
+    manifest = create_manifest(html)
     with lopen(os.path.join(base, 'index-generated.html'), 'wb') as f:
         f.write(html)
+    with lopen(os.path.join(base, 'calibre.appcache'), 'wb') as f:
+        f.write(manifest)
 
 # }}}
 
 # Translations {{{
+
 
 def create_pot(source_files):
     ctx = compiler()
@@ -209,6 +248,7 @@ def create_pot(source_files):
     ctx.eval('exports.gettext_output(catalog, gettext_options, pywrite)')
     return ''.join(buf)
 
+
 def msgfmt(po_data_as_string):
     ctx = compiler()
     ctx.g.po_data = po_data_as_string
@@ -217,11 +257,15 @@ def msgfmt(po_data_as_string):
 # }}}
 
 # REPL {{{
+
+
 def leading_whitespace(line):
     return line[:len(line) - len(line.lstrip())]
 
+
 def format_error(data):
     return ':'.join(map(type(''), (data['file'], data['line'], data['col'], data['message'])))
+
 
 class Repl(Thread):
 
@@ -372,6 +416,7 @@ class Repl(Thread):
 
 # }}}
 
+
 def main(args=sys.argv):
     import argparse
     ver = compiler().g.exports.rs_version
@@ -398,8 +443,10 @@ def main(args=sys.argv):
         except CompileFailure as e:
             raise SystemExit(e.message)
 
+
 def entry():
     main(sys.argv[1:])
+
 
 if __name__ == '__main__':
     main()

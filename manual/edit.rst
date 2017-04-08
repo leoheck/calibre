@@ -57,14 +57,14 @@ That is the basic work flow for editing books -- Open a file, make changes,
 preview and save. The rest of this manual will discuss the various tools and
 features present to allow you to perform specific tasks efficiently.
 
-The Files Browser
+The File Browser
 ------------------
 
 .. image:: images/files_browser.png
-    :alt: The Files Browser
+    :alt: The File Browser
     :class: float-left-img
 
-The :guilabel:`Files Browser` gives you an overview of the various files inside
+The :guilabel:`File Browser` gives you an overview of the various files inside
 the book you are editing. The files are arranged by category, with text (HTML)
 files at the top, followed by stylesheet (CSS) files, images and so on. Simply
 double click on a file to start editing it. Editing is supported for HTML, CSS
@@ -83,7 +83,7 @@ the picture to the left, you can see that the files :guilabel:`cover_image.jpg`
 and :guilabel:`titlepage.xhtml` have the icon of a cover next to them, this
 indicates they are the book cover image and titlepage. Similarly, the
 :guilabel:`content.opf` file has a metadata icon next to it, indicating the
-book metadata is present in it and the the :guilabel:`toc.ncx` file has a T
+book metadata is present in it and the :guilabel:`toc.ncx` file has a T
 icon next to it, indicating it is the Table of Contents.
 
 You can perform many actions on individual files, by right clicking them.
@@ -103,6 +103,10 @@ and so on. Select the files you want bulk renamed by holding down the Shift or
 Ctrl key and clicking the files. Then right click and select :guilabel:`Bulk
 rename`. Enter a prefix and what number you would like the automatic numbering
 to start at, click OK and you are done.
+
+Finally, you can bulk change the file extension for all selected files. Select
+multiple files, as above, and right click and choose :guilabel:`Change the file
+extension for the selected files`.
 
 Merging files
 ^^^^^^^^^^^^^^
@@ -190,7 +194,7 @@ being replaced.
 Linking stylesheets to HTML files efficiently
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As a convenience, you can select multiple HTML files in the Files Browser,
+As a convenience, you can select multiple HTML files in the File Browser,
 right click and choose Link stylesheets to have calibre automatically insert the
 <link> tags for those stylesheets into all the selected HTML files.
 
@@ -440,7 +444,7 @@ beautify.  Accessed via :guilabel:`Tools->Beautify all files`.
     beautified.  This can sometimes mean that a particular file will not be
     affected by beautify as it has no suitable block level tags. In such
     cases you can try different beautification tools, that are less careful,
-    for example: `HTML Tidy <http://infohound.net/tidy/>`_.
+    for example: `HTML Tidy <https://infohound.net/tidy/>`_.
 
 
 Inserting an inline Table of Contents
@@ -660,7 +664,7 @@ Spanish languages. You can install your own dictionaries via
 :guilabel:`Preferences->Editor->Manage spelling dictionaries`. The spell
 checker can use dictionaries from the LibreOffice program (in the .oxt
 format). You can download these dictionaries from
-`The LibreOffice Extensions repository <http://extensions.libreoffice.org/extension-center?getCategories=Dictionary&getCompatibility=any&sort_on=positive_ratings>`_.
+`The LibreOffice Extensions repository <https://extensions.libreoffice.org/extension-center?getCategories=Dictionary&getCompatibility=any&sort_on=positive_ratings>`_.
 
 
 Inserting special characters
@@ -713,6 +717,17 @@ websites. The tool will try to visit every externally linked website, and
 if the visit fails, it will report all broken links in a convenient format for 
 you to fix.
 
+
+Downloading external resources
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can use this tool to automatically download any images/stylesheets/etc. in
+the book that are not bundled with the book (i.e. they have URLs pointing to a
+location on the internet). The tool will find all such resources and
+automatically download them, add them to the book and replace all references to
+them to use the downloaded files.
+
+
 Arranging files into folders by type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -721,7 +736,7 @@ the files inside the EPUB are arranged haphazardly, in different sub-folders.
 This tool allows you to automatically move all files into sub-folders based on
 their types. Access it via :guilabel:`Tools->Arrange into folders`. Note that
 this tool only changes how the files are arranged inside the EPUB, it does not
-change how they are displayed in the Files Browser.
+change how they are displayed in the File Browser.
 
 Importing files in other e-book formats as EPUB
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

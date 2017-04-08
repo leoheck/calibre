@@ -6,7 +6,7 @@ from __future__ import (unicode_literals, division, absolute_import,
                         print_function)
 
 # Based on work of John Howell reversing the KFX format
-# http://www.mobileread.com/forums/showpost.php?p=3176029&postcount=89
+# https://www.mobileread.com/forums/showpost.php?p=3176029&postcount=89
 
 import struct, sys, base64, re
 from collections import defaultdict
@@ -19,8 +19,10 @@ from calibre.utils.date import parse_only_date
 from calibre.utils.localization import canonicalize_lang
 from calibre.utils.imghdr import identify
 
+
 class InvalidKFX(ValueError):
     pass
+
 
 # magic numbers for data structures
 CONTAINER_MAGIC = b'CONT'
@@ -36,6 +38,7 @@ DT_STRING = 8           # unicode
 DT_STRUCT = 11          # tuple
 DT_LIST = 12            # list
 DT_OBJECT = 13          # dict of property/value pairs
+DT_TYPED_DATA = 14      # type, name, value
 
 # property names (non-unicode strings to distinguish them from ION strings in this program)
 # These are place holders. The correct property names are unknown.
@@ -50,7 +53,7 @@ METADATA_PROPERTIES = {
     b'P10' : "languages",
     b'P153': "title",
     b'P154': "description",
-    b'P222': "authors",
+    b'P222': "author",
     b'P232': "publisher",
 }
 
@@ -59,6 +62,7 @@ COVER_KEY = "cover_image_base64"
 
 def hexs(string, sep=' '):
     return sep.join('%02x' % ord(b) for b in string)
+
 
 class PackedData(object):
 
@@ -214,6 +218,12 @@ class PackedIon(PackedData):
 
             return result
 
+        if data_type == DT_TYPED_DATA:
+            ion = PackedIon(self.extract(data_len))
+            ion.unpack_number()
+            ion.unpack_number()
+            return ion.unpack_typed_value()
+
         # ignore unknown types
         self.advance(data_len)
         return None
@@ -236,6 +246,7 @@ def property_name(property_number):
     # strings using a symbol table
     return b"P%d" % property_number
 
+
 def extract_metadata(container_data):
     metadata = defaultdict(list)
 
@@ -248,9 +259,10 @@ def extract_metadata(container_data):
                     metadata[METADATA_PROPERTIES[key]].append(value)
 
         elif entity_type == PROP_METADATA2:
-            for value1 in entity_value[PROP_METADATA3]:
-                for meta in value1[PROP_METADATA]:
-                    metadata[meta[PROP_METADATA_KEY]].append(meta[PROP_METADATA_VALUE])
+            if entity_value is not None:
+                for value1 in entity_value[PROP_METADATA3]:
+                    for meta in value1[PROP_METADATA]:
+                        metadata[meta[PROP_METADATA_KEY]].append(meta[PROP_METADATA_VALUE])
 
         elif entity_type == PROP_IMAGE and COVER_KEY not in metadata:
             # assume first image is the cover
@@ -258,11 +270,13 @@ def extract_metadata(container_data):
 
     return metadata
 
+
 def dump_metadata(m):
     d = dict(m)
     d[COVER_KEY] = bool(d.get(COVER_KEY))
     from pprint import pprint
     pprint(d)
+
 
 def read_metadata_kfx(stream, read_cover=True):
     ' Read the metadata.kfx file that is found in the sdr book folder for KFX files '
@@ -282,7 +296,7 @@ def read_metadata_kfx(stream, read_cover=True):
         return ans
 
     title = get('title') or _('Unknown')
-    authors = get('authors', False) or [_('Unknown')]
+    authors = get('author', False) or [_('Unknown')]
     auth_pat = re.compile(r'([^,]+?)\s*,\s+([^,]+)$')
 
     def fix_author(x):
@@ -292,7 +306,12 @@ def read_metadata_kfx(stream, read_cover=True):
                 return m.group(2) + ' ' + m.group(1)
         return x
 
-    mi = Metadata(title, [fix_author(x) for x in authors])
+    unique_authors = []     # remove duplicates while retaining order
+    for f in [fix_author(x) for x in authors]:
+        if f not in unique_authors:
+            unique_authors.append(f)
+
+    mi = Metadata(title, unique_authors)
     if has('author'):
         mi.author_sort = get('author')
     if has('ASIN'):
@@ -320,6 +339,7 @@ def read_metadata_kfx(stream, read_cover=True):
             mi.cover_data = (fmt, data)
 
     return mi
+
 
 if __name__ == '__main__':
     from calibre import prints

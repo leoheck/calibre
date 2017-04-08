@@ -10,11 +10,13 @@ import sys, os, json, subprocess, errno, hashlib
 from setup import Command, build_cache_dir
 import __builtin__
 
+
 def set_builtins(builtins):
     for x in builtins:
         if not hasattr(__builtin__, x):
             setattr(__builtin__, x, True)
             yield x
+
 
 class Message:
 
@@ -23,6 +25,7 @@ class Message:
 
     def __str__(self):
         return '%s:%s: %s' % (self.filename, self.lineno, self.msg)
+
 
 class Check(Command):
 
@@ -116,7 +119,7 @@ class Check(Command):
                 self.info('\tChecking', f)
                 if self.file_has_errors(f):
                     self.info('%d files left to check' % (len(dirty_files) - i - 1))
-                    subprocess.call(['gvim', '-c', 'SyntasticCheck', '-c', 'll', '-S',
+                    subprocess.call(['vim', '-c', 'SyntasticCheck', '-c', 'll', '-S',
                                     self.j(self.SRC, '../session.vim'), '-f', f])
                     if self.file_has_errors(f):
                         raise SystemExit(1)

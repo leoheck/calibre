@@ -21,6 +21,8 @@ from calibre.utils.config import tweaks
 from calibre.utils.icu import sort_key
 from calibre.library.comments import comments_to_html
 from calibre.gui2.library.delegates import ClearingDoubleSpinBox, ClearingSpinBox
+from calibre.gui2.widgets2 import RatingEditor
+
 
 class Base(object):
 
@@ -63,6 +65,7 @@ class Base(object):
 
     def break_cycles(self):
         self.db = self.widgets = self.initial_val = None
+
 
 class SimpleText(Base):
 
@@ -119,28 +122,36 @@ class Bool(Base):
         val = self.widgets[1].currentIndex()
         return {2: None, 1: False, 0: True}[val]
 
+
 class Int(Base):
 
     def setup_ui(self, parent):
+        self.was_none = False
         self.widgets = [QLabel('&'+self.col_metadata['name']+':', parent),
                 ClearingSpinBox(parent)]
         w = self.widgets[1]
         w.setRange(-1000000, 100000000)
         w.setSpecialValueText(_('Undefined'))
         w.setSingleStep(1)
+        w.valueChanged.connect(self.valueChanged)
 
     def setter(self, val):
         if val is None:
             val = self.widgets[1].minimum()
-        else:
-            val = int(val)
         self.widgets[1].setValue(val)
+        self.was_none = val == self.widgets[1].minimum()
 
     def getter(self):
         val = self.widgets[1].value()
         if val == self.widgets[1].minimum():
             val = None
         return val
+
+    def valueChanged(self, to_what):
+        if self.was_none and to_what == -999999:
+            self.setter(0)
+        self.was_none = to_what == self.widgets[1].minimum()
+
 
 class Float(Int):
 
@@ -152,33 +163,23 @@ class Float(Int):
         w.setDecimals(2)
         w.setSpecialValueText(_('Undefined'))
         w.setSingleStep(1)
+        self.was_none = False
+        w.valueChanged.connect(self.valueChanged)
 
-    def setter(self, val):
-        if val is None:
-            val = self.widgets[1].minimum()
-        self.widgets[1].setValue(val)
 
-class Rating(Int):
+class Rating(Base):
 
     def setup_ui(self, parent):
-        Int.setup_ui(self, parent)
-        w = self.widgets[1]
-        w.setRange(0, 5)
-        w.setSuffix(' '+_('star(s)'))
-        w.setSpecialValueText(_('Not rated'))
+        allow_half_stars = self.col_metadata['display'].get('allow_half_stars', False)
+        self.widgets = [QLabel('&'+self.col_metadata['name']+':', parent), RatingEditor(parent=parent, is_half_star=allow_half_stars)]
 
     def setter(self, val):
-        if val is None:
-            val = 0
-        self.widgets[1].setValue(int(round(val/2.)))
+        val = max(0, min(int(val or 0), 10))
+        self.widgets[1].rating_value = val
 
     def getter(self):
-        val = self.widgets[1].value()
-        if val == 0:
-            val = None
-        else:
-            val *= 2
-        return val
+        return self.widgets[1].rating_value or None
+
 
 class DateTimeEdit(QDateTimeEdit):
 
@@ -258,6 +259,7 @@ class DateTime(Base):
     def normalize_ui_val(self, val):
         return as_utc(val) if val is not None else None
 
+
 class Comments(Base):
 
     def setup_ui(self, parent):
@@ -289,9 +291,11 @@ class Comments(Base):
     def tab(self):
         def fget(self):
             return self._tb.tab
+
         def fset(self, val):
             self._tb.tab = val
         return property(fget=fget, fset=fset)
+
 
 class MultipleWidget(QWidget):
 
@@ -341,6 +345,7 @@ class MultipleWidget(QWidget):
 
     def text(self):
         return self.tags_box.text()
+
 
 class Text(Base):
 
@@ -427,6 +432,7 @@ class Text(Base):
         if d.exec_() == TagEditor.Accepted:
             self.setter(d.tags)
 
+
 class Series(Base):
 
     def setup_ui(self, parent):
@@ -499,6 +505,7 @@ class Series(Base):
         val, s_index = self.current_val
         mi.set('#' + self.col_metadata['label'], val, extra=s_index)
 
+
 class Enumeration(Base):
 
     def setup_ui(self, parent):
@@ -542,6 +549,7 @@ class Enumeration(Base):
             val = None
         return val
 
+
 def comments_factory(db, key, parent):
     fm = db.custom_column_num_map[key]
     ctype = fm.get('display', {}).get('interpret_as', 'html')
@@ -563,11 +571,13 @@ widgets = {
         'enumeration': Enumeration
 }
 
+
 def field_sort_key(y, fm=None):
     m1 = fm[y]
     name = icu_lower(m1['name'])
     n1 = 'zzzzz' + name if m1['datatype'] == 'comments' and m1.get('display', {}).get('interpret_as') != 'short-text' else name
     return sort_key(n1)
+
 
 def populate_metadata_page(layout, db, book_id, bulk=False, two_column=False, parent=None):
     def widget_factory(typ, key):
@@ -672,6 +682,7 @@ def populate_metadata_page(layout, db, book_id, bulk=False, two_column=False, pa
         layout.setRowStretch(layout.rowCount()-1, 100)
     return ans, items
 
+
 class BulkBase(Base):
 
     @property
@@ -743,6 +754,7 @@ class BulkBase(Base):
         if not self.ignore_change_signals:
             self.a_c_checkbox.setChecked(True)
 
+
 class BulkBool(BulkBase, Bool):
 
     def get_initial_value(self, book_ids):
@@ -798,27 +810,35 @@ class BulkBool(BulkBase, Bool):
             else:
                 self.a_c_checkbox.setChecked(True)
 
+
 class BulkInt(BulkBase):
 
     def setup_ui(self, parent):
+        self.was_none = False
         self.make_widgets(parent, QSpinBox)
         self.main_widget.setRange(-1000000, 100000000)
         self.main_widget.setSpecialValueText(_('Undefined'))
         self.main_widget.setSingleStep(1)
+        self.main_widget.valueChanged.connect(self.valueChanged)
 
     def setter(self, val):
         if val is None:
             val = self.main_widget.minimum()
-        else:
-            val = int(val)
         self.main_widget.setValue(val)
         self.ignore_change_signals = False
+        self.was_none = val == self.main_widget.minimum()
 
     def getter(self):
         val = self.main_widget.value()
         if val == self.main_widget.minimum():
             val = None
         return val
+
+    def valueChanged(self, to_what):
+        if self.was_none and to_what == -999999:
+            self.setter(0)
+        self.was_none = to_what == self.main_widget.minimum()
+
 
 class BulkFloat(BulkInt):
 
@@ -828,29 +848,24 @@ class BulkFloat(BulkInt):
         self.main_widget.setDecimals(2)
         self.main_widget.setSpecialValueText(_('Undefined'))
         self.main_widget.setSingleStep(1)
+        self.was_none = False
+        self.main_widget.valueChanged.connect(self.valueChanged)
+
 
 class BulkRating(BulkBase):
 
     def setup_ui(self, parent):
-        self.make_widgets(parent, QSpinBox)
-        self.main_widget.setRange(0, 5)
-        self.main_widget.setSuffix(' '+_('star(s)'))
-        self.main_widget.setSpecialValueText(_('Not rated'))
-        self.main_widget.setSingleStep(1)
+        allow_half_stars = self.col_metadata['display'].get('allow_half_stars', False)
+        self.make_widgets(parent, partial(RatingEditor, is_half_star=allow_half_stars))
 
     def setter(self, val):
-        if val is None:
-            val = 0
-        self.main_widget.setValue(int(round(val/2.)))
+        val = max(0, min(int(val or 0), 10))
+        self.main_widget.rating_value = val
         self.ignore_change_signals = False
 
     def getter(self):
-        val = self.main_widget.value()
-        if val == 0:
-            val = None
-        else:
-            val *= 2
-        return val
+        return self.main_widget.rating_value or None
+
 
 class BulkDateTime(BulkBase):
 
@@ -902,6 +917,7 @@ class BulkDateTime(BulkBase):
 
     def normalize_ui_val(self, val):
         return as_utc(val) if val is not None else None
+
 
 class BulkSeries(BulkBase):
 
@@ -981,6 +997,7 @@ class BulkSeries(BulkBase):
             self.db.set_custom_bulk(book_ids, val, extras=extras,
                                    num=self.col_id, notify=notify)
 
+
 class BulkEnumeration(BulkBase, Enumeration):
 
     def get_initial_value(self, book_ids):
@@ -1025,6 +1042,7 @@ class BulkEnumeration(BulkBase, Enumeration):
             self.main_widget.setCurrentIndex(self.main_widget.findText(val))
         self.ignore_change_signals = False
 
+
 class RemoveTags(QWidget):
 
     def __init__(self, parent, values):
@@ -1048,6 +1066,7 @@ class RemoveTags(QWidget):
             self.tags_box.setEnabled(False)
         else:
             self.tags_box.setEnabled(True)
+
 
 class BulkText(BulkBase):
 

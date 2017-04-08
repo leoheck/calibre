@@ -12,6 +12,7 @@ from io import BytesIO
 from collections import defaultdict, Set, MutableSet
 from functools import wraps, partial
 from future_builtins import zip
+from time import time
 
 from calibre import isbytestring, as_unicode
 from calibre.constants import iswindows, preferred_encoding
@@ -35,19 +36,23 @@ from calibre.utils.config import prefs, tweaks
 from calibre.utils.date import now as nowf, utcnow, UNDEFINED_DATE
 from calibre.utils.icu import sort_key
 
+
 def api(f):
     f.is_cache_api = True
     return f
+
 
 def read_api(f):
     f = api(f)
     f.is_read_api = True
     return f
 
+
 def write_api(f):
     f = api(f)
     f.is_read_api = False
     return f
+
 
 def wrap_simple(lock, func):
     @wraps(func)
@@ -62,6 +67,7 @@ def wrap_simple(lock, func):
             return func(*args, **kwargs)
     return call_func_with_lock
 
+
 def run_import_plugins(path_or_stream, fmt):
     fmt = fmt.lower()
     if hasattr(path_or_stream, 'seek'):
@@ -74,6 +80,7 @@ def run_import_plugins(path_or_stream, fmt):
         path = path_or_stream
     return run_plugins_on_import(path, fmt)
 
+
 def _add_newbook_tag(mi):
     tags = prefs['new_book_tags']
     if tags:
@@ -84,7 +91,9 @@ def _add_newbook_tag(mi):
                 elif tag not in mi.tags:
                     mi.tags.append(tag)
 
+
 dynamic_category_preferences = frozenset({'grouped_search_make_user_categories', 'grouped_search_terms', 'user_categories'})
+
 
 class Cache(object):
 
@@ -554,7 +563,7 @@ class Cache(object):
             slow filesystem access is done. The cache values could be out of date
             if access was performed to the filesystem outside of this API.
 
-        :param update_db: If ``True`` The max_size field of the database is updates for this book.
+        :param update_db: If ``True`` The max_size field of the database is updated for this book.
         '''
         if not fmt:
             return {}
@@ -804,6 +813,7 @@ class Cache(object):
                 path = self._field_for('path', book_id).replace('/', os.sep)
             except:
                 return ()
+
             def verify(fmt):
                 try:
                     name = self.fields['formats'].format_fname(book_id, fmt)
@@ -918,6 +928,7 @@ class Cache(object):
                     return virtual_fields[fm.get(field, field)].sort_keys_for_books(get_metadata, lang_map)
             if is_series:
                 idx_func = self.fields[idx].sort_keys_for_books(get_metadata, lang_map)
+
                 def skf(book_id):
                     return (func(book_id), idx_func(book_id))
                 return skf
@@ -1219,7 +1230,7 @@ class Cache(object):
         if mi contains empty values. In this case, 'None' is distinguished from
         'empty'. If mi.XXX is None, the XXX is not replaced, otherwise it is.
         The tags, identifiers, and cover attributes are special cases. Tags and
-        identifiers cannot be set to None so then will always be replaced if
+        identifiers cannot be set to None so they will always be replaced if
         force_changes is true. You must ensure that mi contains the values you
         want the book to have. Covers are always changed if a new cover is
         provided, but are never deleted. Also note that force_changes has no
@@ -1328,7 +1339,7 @@ class Cache(object):
         path = self._field_for('path', book_id)
         if path is None:
             # Theoretically, this should never happen, but apparently it
-            # does: http://www.mobileread.com/forums/showthread.php?t=233353
+            # does: https://www.mobileread.com/forums/showthread.php?t=233353
             self._update_path({book_id}, mark_as_dirtied=False)
             path = self._field_for('path', book_id)
 
@@ -1448,15 +1459,15 @@ class Cache(object):
         return _get_next_series_num_for_list(tuple(series_indices), unwrap=False)
 
     @read_api
-    def author_sort_from_authors(self, authors):
+    def author_sort_from_authors(self, authors, key_func=icu_lower):
         '''Given a list of authors, return the author_sort string for the authors,
         preferring the author sort associated with the author over the computed
         string. '''
         table = self.fields['authors'].table
         result = []
-        rmap = {icu_lower(v):k for k, v in table.id_map.iteritems()}
+        rmap = {key_func(v):k for k, v in table.id_map.iteritems()}
         for aut in authors:
-            aid = rmap.get(icu_lower(aut), None)
+            aid = rmap.get(key_func(aut), None)
             result.append(author_to_author_sort(aut) if aid is None else table.asort_map[aid])
         return ' & '.join(filter(None, result))
 
@@ -2122,6 +2133,30 @@ class Cache(object):
                 report_progress(i+1, len(book_ids), mi)
 
     @read_api
+    def get_last_read_positions(self, book_id, fmt, user):
+        fmt = fmt.upper()
+        ans = []
+        for device, cfi, epoch, pos_frac in self.backend.execute(
+                'SELECT device,cfi,epoch,pos_frac FROM last_read_positions WHERE book=? AND format=? AND user=?',
+                (book_id, fmt, user)):
+            ans.append({'device':device, 'cfi': cfi, 'epoch':epoch, 'pos_frac':pos_frac})
+        return ans
+
+    @write_api
+    def set_last_read_position(self, book_id, fmt, user='_', device='_', cfi=None, epoch=None, pos_frac=0):
+        fmt = fmt.upper()
+        device = device or '_'
+        user = user or '_'
+        if not cfi:
+            self.backend.execute(
+                'DELETE FROM last_read_positions WHERE book=? AND format=? AND user=? AND device=?',
+                (book_id, fmt, user, device))
+        else:
+            self.backend.execute(
+                'INSERT OR REPLACE INTO last_read_positions(book,format,user,device,cfi,epoch,pos_frac) VALUES (?,?,?,?,?,?,?)',
+                (book_id, fmt, user, device, cfi, epoch or time(), pos_frac))
+
+    @read_api
     def export_library(self, library_key, exporter, progress=None, abort=None):
         from binascii import hexlify
         key_prefix = hexlify(library_key)
@@ -2159,6 +2194,7 @@ class Cache(object):
         exporter.set_metadata(library_key, metadata)
         if progress is not None:
             progress(_('Completed'), total, total)
+
 
 def import_library(library_key, importer, library_path, progress=None, abort=None):
     from calibre.db.backend import DB

@@ -72,6 +72,7 @@ def find_plugboard(device_name, format, plugboards):
         prints('Device using plugboard', format, device_name, cpb)
     return cpb
 
+
 def config(defaults=None):
     if defaults is None:
         c = Config('save_to_disk', _('Options to control saving to disk'))
@@ -87,7 +88,7 @@ def config(defaults=None):
                 ' actual e-book files.'))
     x('save_cover', default=True,
             help=_('Normally, calibre will save the cover in a separate file along with the '
-                'actual e-book file(s).'))
+                'actual e-book files.'))
     x('formats', default='all',
             help=_('Comma separated list of formats to save for each book.'
                 ' By default all available formats are saved.'))
@@ -127,6 +128,7 @@ def config(defaults=None):
                 ' directory structure'))
     return c
 
+
 def preprocess_template(template):
     template = template.replace('//', '/')
     template = template.replace('{author}', '{authors}')
@@ -134,6 +136,7 @@ def preprocess_template(template):
     if not isinstance(template, unicode):
         template = template.decode(preferred_encoding, 'replace')
     return template
+
 
 class Formatter(TemplateFormatter):
     '''
@@ -167,10 +170,11 @@ class Formatter(TemplateFormatter):
             traceback.print_exc()
             return key
 
+
 def get_components(template, mi, id, timefmt='%b %Y', length=250,
         sanitize_func=ascii_filename, replace_whitespace=False,
-        to_lowercase=False, safe_format=True, last_has_extension=True):
-
+        to_lowercase=False, safe_format=True, last_has_extension=True,
+        single_dir=False):
     tsorder = tweaks['save_template_title_series_sorting']
     format_args = FORMAT_ARGS.copy()
     format_args.update(mi.all_non_none_fields())
@@ -248,6 +252,8 @@ def get_components(template, mi, id, timefmt='%b %Y', length=250,
     if replace_whitespace:
         components = [re.sub(r'\s', '_', x) for x in components]
 
+    if single_dir:
+        components = components[-1:]
     return shorten_components_to(length, components, last_has_extension=last_has_extension)
 
 
@@ -281,19 +287,18 @@ def save_book_to_disk(id_, db, root, opts, length):
             except:
                 pass
 
+
 def get_path_components(opts, mi, book_id, path_length):
     try:
         components = get_components(opts.template, mi, book_id, opts.timefmt, path_length,
             ascii_filename if opts.asciiize else sanitize_file_name_unicode,
             to_lowercase=opts.to_lowercase,
             replace_whitespace=opts.replace_whitespace, safe_format=False,
-            last_has_extension=False)
+            last_has_extension=False, single_dir=opts.single_dir)
     except Exception, e:
         raise ValueError(_('Failed to calculate path for '
             'save to disk. Template: %(templ)s\n'
             'Error: %(err)s')%dict(templ=opts.template, err=e))
-    if opts.single_dir:
-        components = components[-1:]
     if not components:
         raise ValueError(_('Template evaluation resulted in no'
             ' path components. Template: %s')%opts.template)
@@ -325,6 +330,7 @@ def update_metadata(mi, fmt, stream, plugboards, cdata, error_report=None, plugb
             traceback.print_exc()
         else:
             error_report(fmt, traceback.format_exc())
+
 
 def do_save_book_to_disk(id_, mi, cover, plugboards,
         format_map, root, opts, length):
@@ -391,6 +397,7 @@ def do_save_book_to_disk(id_, mi, cover, plugboards,
 
     return not written, id_, mi.title
 
+
 def sanitize_args(root, opts):
     if opts is None:
         opts = config().parse()
@@ -402,6 +409,7 @@ def sanitize_args(root, opts):
     if length < 5:
         raise ValueError('%r is too long.'%root)
     return root, opts, length
+
 
 def save_to_disk(db, ids, root, opts=None, callback=None):
     '''
@@ -432,6 +440,7 @@ def save_to_disk(db, ids, root, opts=None, callback=None):
                 break
     return failures
 
+
 def read_serialized_metadata(data):
     from calibre.ebooks.metadata.opf2 import OPF
     from calibre.utils.date import parse_date
@@ -447,6 +456,7 @@ def read_serialized_metadata(data):
             cdata = f.read()
     return mi, cdata
 
+
 def update_serialized_metadata(book, common_data=None):
     result = []
     plugboard_cache = common_data
@@ -455,6 +465,7 @@ def update_serialized_metadata(book, common_data=None):
 
             fmts = [fp.rpartition(os.extsep)[-1] for fp in book['fmts']]
             mi, cdata = read_serialized_metadata(book)
+
             def report_error(fmt, tb):
                 result.append((fmt, tb))
 

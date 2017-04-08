@@ -18,6 +18,7 @@ from calibre.ebooks.chardet import strip_encoding_declarations
 from calibre.ebooks.oeb.polish.css import iter_declarations, remove_property_value
 from calibre.ebooks.oeb.polish.utils import extract
 
+
 class LinkReplacer(object):
 
     def __init__(self, base, container, link_map, frag_map):
@@ -50,6 +51,7 @@ class LinkReplacer(object):
             self.replaced = True
         return href
 
+
 class IdReplacer(object):
 
     def __init__(self, base, container, id_map):
@@ -78,6 +80,7 @@ class IdReplacer(object):
         if href != url:
             self.replaced = True
         return href
+
 
 class LinkRebaser(object):
 
@@ -121,6 +124,7 @@ def replace_links(container, link_map, frag_map=lambda name, frag:frag, replace_
         repl = LinkReplacer(name, container, link_map, frag_map)
         container.replace_links(name, repl)
 
+
 def replace_ids(container, id_map):
     '''
     Replace all links in the container that pointed to the changed ids.
@@ -144,6 +148,7 @@ def replace_ids(container, id_map):
         if repl.replaced:
             changed = True
     return changed
+
 
 def smarten_punctuation(container, report):
     from calibre.ebooks.conversion.preprocess import smarten_punctuation
@@ -173,6 +178,7 @@ def smarten_punctuation(container, report):
         report(_('No punctuation that could be smartened found'))
     return smartened
 
+
 def rename_files(container, file_map):
     '''
     Rename files in the container, automatically updating all links to them.
@@ -198,6 +204,7 @@ def rename_files(container, file_map):
             link_map[current_name] = new_name
     replace_links(container, link_map, replace_in_opf=True)
 
+
 def replace_file(container, name, path, basename, force_mt=None):
     dirname, base = name.rpartition('/')[0::2]
     nname = sanitize_file_name_unicode(basename)
@@ -212,6 +219,7 @@ def replace_file(container, name, path, basename, force_mt=None):
                 nname = b + ('_%d.%s' % (count, e))
             rename_files(container, {name:nname})
             mt = force_mt or container.guess_type(nname)
+            container.mime_map[nname] = mt
             for itemid, q in container.manifest_id_map.iteritems():
                 if q == nname:
                     for item in container.opf_xpath('//opf:manifest/opf:item[@href and @id="%s"]' % itemid):
@@ -219,6 +227,7 @@ def replace_file(container, name, path, basename, force_mt=None):
         container.dirty(container.opf_name)
         with container.open(nname, 'wb') as dest:
             shutil.copyfileobj(src, dest)
+
 
 def mt_to_category(container, mt):
     from calibre.ebooks.oeb.polish.utils import guess_type
@@ -237,6 +246,7 @@ def mt_to_category(container, mt):
     else:
         category = mt.partition('/')[0]
     return category
+
 
 def get_recommended_folders(container, names):
     ''' Return the folders that are recommended for the given filenames. The
@@ -257,10 +267,33 @@ def get_recommended_folders(container, names):
     recommendations = {category:counter.most_common(1)[0][0] for category, counter in counts.iteritems()}
     return {n:recommendations.get(mt_to_category(container, guess_type(os.path.basename(n))), opf_folder) for n in names}
 
+
+def normalize_case(container, val):
+
+    def safe_listdir(x):
+        try:
+            return os.listdir(x)
+        except EnvironmentError:
+            return ()
+
+    parts = val.split('/')
+    ans = []
+    for i in range(len(parts)):
+        q = '/'.join(parts[:i+1])
+        x = container.name_to_abspath(q)
+        xl = parts[i].lower()
+        candidates = [c for c in safe_listdir(os.path.dirname(x)) if c != parts[i] and c.lower() == xl]
+        ans.append(candidates[0] if candidates else parts[i])
+    return '/'.join(ans)
+
+
 def rationalize_folders(container, folder_type_map):
     all_names = set(container.mime_map)
     new_names = set()
     name_map = {}
+    for key in tuple(folder_type_map):
+        val = folder_type_map[key]
+        folder_type_map[key] = normalize_case(container, val)
     for name in all_names:
         if name.startswith('META-INF/'):
             continue

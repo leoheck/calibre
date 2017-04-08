@@ -10,6 +10,7 @@ from calibre.gui2 import question_dialog, error_dialog, gprefs
 from calibre.constants import islinux
 from calibre.utils.icu import sort_key, primary_contains
 
+
 class TagEditor(QDialog, Ui_TagEditor):
 
     def __init__(self, window, db, id_=None, key=None, current_tags=None):
@@ -130,6 +131,8 @@ class TagEditor(QDialog, Ui_TagEditor):
     def apply_tags(self, item=None):
         items = self.available_tags.selectedItems() if item is None else [item]
         rows = [self.available_tags.row(i) for i in items]
+        if not rows:
+            return
         row = max(rows)
         tags = self._get_applied_tags_box_contents()
         for item in items:
@@ -225,6 +228,7 @@ class TagEditor(QDialog, Ui_TagEditor):
 
     def save_state(self):
         gprefs['tag_editor_geometry'] = bytearray(self.saveGeometry())
+
 
 if __name__ == '__main__':
     from calibre.gui2 import Application

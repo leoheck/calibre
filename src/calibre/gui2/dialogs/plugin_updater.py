@@ -32,6 +32,7 @@ FILTER_INSTALLED = 1
 FILTER_UPDATE_AVAILABLE = 2
 FILTER_NOT_INSTALLED = 3
 
+
 def get_plugin_updates_available(raise_error=False):
     '''
     API exposed to read whether there are updates available for any
@@ -48,11 +49,14 @@ def get_plugin_updates_available(raise_error=False):
             return update_plugins
     return None
 
+
 def filter_upgradeable_plugins(display_plugin):
     return display_plugin.is_upgrade_available()
 
+
 def filter_not_installed_plugins(display_plugin):
     return not display_plugin.is_installed()
+
 
 def read_available_plugins(raise_error=False):
     import json, bz2
@@ -81,11 +85,12 @@ def read_available_plugins(raise_error=False):
     display_plugins = sorted(display_plugins, key=lambda k: k.name)
     return display_plugins
 
+
 def get_installed_plugin_status(display_plugin):
     display_plugin.installed_version = None
     display_plugin.plugin = None
     for plugin in initialized_plugins():
-        if plugin.name == display_plugin.name and plugin.plugin_path is not None:
+        if plugin.name == display_plugin.qname and plugin.plugin_path is not None:
             display_plugin.plugin = plugin
             display_plugin.installed_version = plugin.version
             break
@@ -110,6 +115,7 @@ class ImageTitleLayout(QHBoxLayout):
     '''
     A reusable layout widget displaying an image followed by a title
     '''
+
     def __init__(self, parent, icon_name, title):
         QHBoxLayout.__init__(self)
         title_font = QFont()
@@ -190,6 +196,7 @@ class DisplayPlugin(object):
 
     def __init__(self, plugin):
         self.name = plugin['index_name']
+        self.qname = plugin.get('name', self.name)
         self.forum_link = plugin['thread_url']
         self.zip_url = SERVER + plugin['file']
         self.installed_version = None
@@ -658,7 +665,7 @@ class PluginUpdaterDialog(SizePersistedDialog):
                 if DEBUG:
                     prints('Removing uninstall dependency for: ', display_plugin.name)
                 display_plugin.uninstall_plugins.remove(name_to_remove)
-            if display_plugin.name == name_to_remove:
+            if display_plugin.qname == name_to_remove:
                 if DEBUG:
                     prints('Resetting plugin to uninstalled status: ', display_plugin.name)
                 display_plugin.installed_version = None
@@ -673,7 +680,7 @@ class PluginUpdaterDialog(SizePersistedDialog):
                    _('Are you sure you want to uninstall the <b>%s</b> plugin?')%display_plugin.name,
                    show_copy_button=False):
             return
-        self._uninstall_plugin(display_plugin.name)
+        self._uninstall_plugin(display_plugin.qname)
         if self.proxy_model.filter_criteria in [FILTER_INSTALLED, FILTER_UPDATE_AVAILABLE]:
             self.model.beginResetModel(), self.model.endResetModel()
             self._select_and_focus_view()
@@ -729,6 +736,7 @@ class PluginUpdaterDialog(SizePersistedDialog):
             b = d.bb.addButton(_('Restart calibre now'), d.bb.AcceptRole)
             b.setIcon(QIcon(I('lt.png')))
             d.do_restart = False
+
             def rf():
                 d.do_restart = True
             b.clicked.connect(rf)

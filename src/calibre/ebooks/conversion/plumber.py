@@ -40,14 +40,17 @@ various stages of conversion. The stages are:
 
 '''
 
+
 def supported_input_formats():
     fmts = available_input_formats()
     for x in ('zip', 'rar', 'oebzip'):
         fmts.add(x)
     return fmts
 
+
 class OptionValues(object):
     pass
+
 
 class CompositeProgressReporter(object):
 
@@ -60,7 +63,9 @@ class CompositeProgressReporter(object):
                 (self.global_max - self.global_min)
         self.global_reporter(global_frac, msg)
 
+
 ARCHIVE_FMTS = ('zip', 'rar', 'oebzip')
+
 
 class Plumber(object):
 
@@ -496,7 +501,7 @@ OptionRecommendation(name='smarten_punctuation',
         recommended_value=False, level=OptionRecommendation.LOW,
         help=_('Convert plain quotes, dashes and ellipsis to their '
             'typographically correct equivalents. For details, see '
-            'http://daringfireball.net/projects/smartypants'
+            'https://daringfireball.net/projects/smartypants'
             )
         ),
 
@@ -713,6 +718,7 @@ OptionRecommendation(name='search_replace',
         if view_kepub and input_fmt.lower() == 'kepub':
             input_fmt = 'epub'
         self.archive_input_tdir = None
+        self.changed_options = set()
         if input_fmt in ARCHIVE_FMTS:
             self.log('Processing archive...')
             tdir = PersistentTemporaryDirectory('_pl_arc')
@@ -851,8 +857,11 @@ OptionRecommendation(name='search_replace',
         for name, val, level in recommendations:
             rec = self.get_option_by_name(name)
             if rec is not None and rec.level <= level and rec.level < rec.HIGH:
+                changed = rec.recommended_value != val
                 rec.recommended_value = val
                 rec.level = level
+                if changed:
+                    self.changed_options.add(rec)
 
     def opts_to_mi(self, mi):
         from calibre.ebooks.metadata import string_to_authors
@@ -951,6 +960,11 @@ OptionRecommendation(name='search_replace',
                 and self.output_fmt == 'mobi'
         if self.opts.verbose:
             self.log.filter_level = self.log.DEBUG
+        if self.changed_options:
+            self.log('Conversion options changed from defaults:')
+            for rec in self.changed_options:
+                if rec.option.name not in ('username', 'password'):
+                    self.log(' ', '%s:' % rec.option.name, repr(rec.recommended_value))
         if self.opts.verbose > 1:
             self.log.debug('Resolved conversion options')
             try:
@@ -1096,6 +1110,8 @@ OptionRecommendation(name='search_replace',
         self.opts.source = self.opts.input_profile
         self.opts.dest = self.opts.output_profile
 
+        from calibre.ebooks.oeb.transforms.jacket import RemoveFirstImage
+        RemoveFirstImage()(self.oeb, self.opts, self.user_metadata)
         from calibre.ebooks.oeb.transforms.metadata import MergeMetadata
         MergeMetadata()(self.oeb, self.user_metadata, self.opts,
                 override_input_metadata=self.override_input_metadata)
@@ -1107,7 +1123,7 @@ OptionRecommendation(name='search_replace',
         pr(0.35)
         self.flush()
 
-        if self.output_plugin.file_type != 'epub':
+        if self.output_plugin.file_type not in ('epub', 'kepub'):
             # Remove the toc reference to the html cover, if any, except for
             # epub, as the epub output plugin will do the right thing with it.
             item = getattr(self.oeb.toc, 'item_that_refers_to_cover', None)
@@ -1227,12 +1243,16 @@ OptionRecommendation(name='search_replace',
         self.log(self.output_fmt.upper(), 'output written to', self.output)
         self.flush()
 
+
 # This has to be global as create_oebbook can be called from other locations
 # (for example in the html input plugin)
 regex_wizard_callback = None
+
+
 def set_regex_wizard_callback(f):
     global regex_wizard_callback
     regex_wizard_callback = f
+
 
 def create_oebbook(log, path_or_stream, opts, reader=None,
         encoding='utf-8', populate=True, for_regex_wizard=False, specialize=None):

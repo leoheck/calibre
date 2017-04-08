@@ -1,33 +1,46 @@
 #!/usr/bin/env python2
 # vim:fileencoding=utf-8
-from __future__ import (unicode_literals, division, absolute_import,
-                        print_function)
+# License: GPLv3 Copyright: 2013, Kovid Goyal <kovid at kovidgoyal.net>
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-__license__ = 'GPL v3'
-__copyright__ = '2013, Kovid Goyal <kovid at kovidgoyal.net>'
-
-import re, importlib
-import textwrap, unicodedata
+import importlib
+import os
+import re
+import textwrap
+import unicodedata
 from future_builtins import map
 
-import regex
 from PyQt5.Qt import (
-    QPlainTextEdit, QFontDatabase, QToolTip, QPalette, QFont, QKeySequence,
-    QTextEdit, QTextFormat, QWidget, QSize, QPainter, Qt, QRect, QColor,
-    QColorDialog, QTimer, pyqtSignal)
+    QColor, QColorDialog, QFont, QFontDatabase, QKeySequence, QPainter, QPalette,
+    QPlainTextEdit, QRect, QSize, Qt, QTextEdit, QTextFormat, QTimer, QToolTip,
+    QWidget, pyqtSignal
+)
 
+import regex
 from calibre import prepare_string_for_xml
-from calibre.gui2.tweak_book import tprefs, TOP
+from calibre.ebooks.oeb.base import OEB_DOCS, OEB_STYLES
+from calibre.ebooks.oeb.polish.replace import get_recommended_folders
+from calibre.ebooks.oeb.polish.utils import guess_type
+from calibre.gui2.tweak_book import (
+    CONTAINER_DND_MIMETYPE, TOP, current_container, tprefs
+)
 from calibre.gui2.tweak_book.completion.popup import CompletionPopup
 from calibre.gui2.tweak_book.editor import (
-    SYNTAX_PROPERTY, SPELL_PROPERTY, SPELL_LOCALE_PROPERTY, store_locale, LINK_PROPERTY)
-from calibre.gui2.tweak_book.editor.themes import get_theme, theme_color, theme_format
-from calibre.gui2.tweak_book.editor.syntax.base import SyntaxHighlighter
+    LINK_PROPERTY, SPELL_LOCALE_PROPERTY, SPELL_PROPERTY, SYNTAX_PROPERTY,
+    store_locale
+)
 from calibre.gui2.tweak_book.editor.smarts import NullSmarts
 from calibre.gui2.tweak_book.editor.snippets import SnippetManager
-from calibre.gui2.tweak_book.widgets import PlainTextEdit, PARAGRAPH_SEPARATOR
+from calibre.gui2.tweak_book.editor.syntax.base import SyntaxHighlighter
+from calibre.gui2.tweak_book.editor.themes import (
+    get_theme, theme_color, theme_format
+)
+from calibre.gui2.tweak_book.widgets import PARAGRAPH_SEPARATOR, PlainTextEdit
 from calibre.spell.break_iterator import index_of
-from calibre.utils.icu import safe_chr, string_length, capitalize, upper, lower, swapcase
+from calibre.utils.icu import (
+    capitalize, lower, safe_chr, string_length, swapcase, upper
+)
+from calibre.utils.img import image_to_data
 from calibre.utils.titlecase import titlecase
 
 
@@ -39,6 +52,7 @@ def get_highlighter(syntax):
             pass
     return SyntaxHighlighter
 
+
 def get_smarts(syntax):
     if syntax:
         smartsname = {'xml':'html'}.get(syntax, syntax)
@@ -47,7 +61,10 @@ def get_smarts(syntax):
         except (ImportError, AttributeError):
             pass
 
+
 _dff = None
+
+
 def default_font_family():
     global _dff
     if _dff is None:
@@ -60,6 +77,7 @@ def default_font_family():
             _dff = 'Courier New'
     return _dff
 
+
 class LineNumbers(QWidget):  # {{{
 
     def __init__(self, parent):
@@ -71,6 +89,7 @@ class LineNumbers(QWidget):  # {{{
     def paintEvent(self, ev):
         self.parent().paint_line_numbers(ev)
 # }}}
+
 
 class TextEdit(PlainTextEdit):
 
@@ -104,12 +123,94 @@ class TextEdit(PlainTextEdit):
         self.blockCountChanged[int].connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
 
+    def get_droppable_files(self, md):
+
+        def is_mt_ok(mt):
+            return self.syntax == 'html' and (
+                mt in OEB_DOCS or mt in OEB_STYLES or mt.startswith('image/')
+            )
+
+        if md.hasFormat(CONTAINER_DND_MIMETYPE):
+            for line in bytes(md.data(CONTAINER_DND_MIMETYPE)).decode('utf-8').splitlines():
+                mt = current_container().mime_map.get(line, 'application/octet-stream')
+                if is_mt_ok(mt):
+                    yield line, mt, True
+            return
+        for qurl in md.urls():
+            if qurl.isLocalFile() and os.access(qurl.toLocalFile(), os.R_OK):
+                path = qurl.toLocalFile()
+                mt = guess_type(path)
+                if is_mt_ok(mt):
+                    yield path, mt, False
+
+    def canInsertFromMimeData(self, md):
+        if md.hasText() or (md.hasHtml() and self.syntax == 'html') or md.hasImage():
+            return True
+        elif tuple(self.get_droppable_files(md)):
+            return True
+        return False
+
+    def insertFromMimeData(self, md):
+        files = tuple(self.get_droppable_files(md))
+        base = self.highlighter.doc_name or None
+
+        def get_name(name):
+            return get_recommended_folders(current_container(), (name,))[name] + '/' + name
+
+        def get_href(name):
+            return current_container().name_to_href(name, base)
+
+        def insert_text(text):
+            c = self.textCursor()
+            c.insertText(text)
+            self.setTextCursor(c)
+            self.ensureCursorVisible()
+
+        def add_file(name, data, mt=None):
+            from calibre.gui2.tweak_book.boss import get_boss
+            name = current_container().add_file(name, data, media_type=mt, modify_name_if_needed=True)
+            get_boss().refresh_file_list()
+            return name
+
+        if files:
+            for path, mt, is_name in files:
+                if is_name:
+                    name = path
+                else:
+                    name = get_name(os.path.basename(path))
+                    with lopen(path, 'rb') as f:
+                        name = add_file(name, f.read(), mt)
+                href = get_href(name)
+                if mt.startswith('image/'):
+                    self.insert_image(href)
+                elif mt in OEB_STYLES:
+                    insert_text('<link href="{}" rel="stylesheet" type="text/css"/>'.format(href))
+                elif mt in OEB_DOCS:
+                    self.insert_hyperlink(href, name)
+            self.ensureCursorVisible()
+            return
+        if md.hasImage():
+            img = md.imageData()
+            if img is not None and img.isValid():
+                data = image_to_data(img, fmt='PNG')
+                name = add_file(get_name('dropped_image.png', data))
+                self.insert_image(get_href(name))
+                self.ensureCursorVisible()
+                return
+        if md.hasText():
+            return insert_text(md.text())
+        if md.hasHtml():
+            insert_text(md.html())
+            return
+
     @dynamic_property
     def is_modified(self):
         ''' True if the document has been modified since it was loaded or since
         the last time is_modified was set to False. '''
+
         def fget(self):
             return self.document().isModified()
+
         def fset(self, val):
             self.document().setModified(bool(val))
         return property(fget=fget, fset=fset)
@@ -331,6 +432,21 @@ class TextEdit(PlainTextEdit):
     def smart_comment(self):
         from calibre.gui2.tweak_book.editor.comments import smart_comment
         smart_comment(self, self.syntax)
+
+    def sort_css(self):
+        from calibre.gui2.dialogs.confirm_delete import confirm
+        if confirm(_('Sorting CSS rules can in rare cases change the effective styles applied to the book.'
+                     ' Are you sure you want to proceed?'), 'edit-book-confirm-sort-css', parent=self, config_set=tprefs):
+            c = self.textCursor()
+            c.beginEditBlock()
+            c.movePosition(c.Start), c.movePosition(c.End, c.KeepAnchor)
+            text = unicode(c.selectedText()).replace(PARAGRAPH_SEPARATOR, '\n').rstrip('\0')
+            from calibre.ebooks.oeb.polish.css import sort_sheet
+            text = sort_sheet(current_container(), text).cssText
+            c.insertText(text)
+            c.movePosition(c.Start)
+            c.endEditBlock()
+            self.setTextCursor(c)
 
     def find(self, pat, wrap=False, marked=False, complete=False, save_match=None):
         if marked:
@@ -575,24 +691,20 @@ class TextEdit(PlainTextEdit):
             num += 1
     # }}}
 
-    def event(self, ev):
-        if ev.type() == ev.ToolTip:
-            self.show_tooltip(ev)
+    def override_shortcut(self, ev):
+        # Let the global cut/copy/paste/undo/redo shortcuts work, this avoids the nbsp
+        # problem as well, since they use the overridden copy() method
+        # instead of the one from Qt, and allows proper customization
+        # of the shortcuts
+        if ev in (QKeySequence.Copy, QKeySequence.Cut, QKeySequence.Paste, QKeySequence.Undo, QKeySequence.Redo):
+            ev.ignore()
             return True
-        if ev.type() == ev.ShortcutOverride:
-            # Let the global cut/copy/paste/undo/redo shortcuts work, this avoids the nbsp
-            # problem as well, since they use the overridden copy() method
-            # instead of the one from Qt, and allows proper customization
-            # of the shortcuts
-            if ev in (QKeySequence.Copy, QKeySequence.Cut, QKeySequence.Paste, QKeySequence.Undo, QKeySequence.Redo):
-                ev.ignore()
-                return True
-            # This is used to convert typed hex codes into unicode
-            # characters
-            if ev.key() == Qt.Key_X and ev.modifiers() == Qt.AltModifier:
-                ev.accept()
-                return True
-        return QPlainTextEdit.event(self, ev)
+        # This is used to convert typed hex codes into unicode
+        # characters
+        if ev.key() == Qt.Key_X and ev.modifiers() == Qt.AltModifier:
+            ev.accept()
+            return True
+        return PlainTextEdit.override_shortcut(self, ev)
 
     def text_for_range(self, block, r):
         c = self.textCursor()
@@ -724,7 +836,11 @@ class TextEdit(PlainTextEdit):
             c.setPosition(c.position() - len(suffix))
         self.setTextCursor(c)
 
-    def insert_image(self, href, fullpage=False, preserve_aspect_ratio=False):
+    def insert_image(self, href, fullpage=False, preserve_aspect_ratio=False, width=-1, height=-1):
+        if width <= 0:
+            width = 1200
+        if height <= 0:
+            height = 1600
         c = self.textCursor()
         template, alt = 'url(%s)', ''
         left = min(c.position(), c.anchor)
@@ -737,9 +853,9 @@ class TextEdit(PlainTextEdit):
                 template =  '''\
 <div style="page-break-before:always; page-break-after:always; page-break-inside:avoid">\
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" \
-version="1.1" width="100%%" height="100%%" viewBox="0 0 1200 1600" preserveAspectRatio="{}">\
-<image width="1200" height="1600" xlink:href="%s"/>\
-</svg></div>'''.format('xMidYMid meet' if preserve_aspect_ratio else 'none')
+version="1.1" width="100%%" height="100%%" viewBox="0 0 {w} {h}" preserveAspectRatio="{a}">\
+<image width="{w}" height="{h}" xlink:href="%s"/>\
+</svg></div>'''.format(w=width, h=height, a='xMidYMid meet' if preserve_aspect_ratio else 'none')
             else:
                 alt = _('Image')
                 template = '<img alt="{0}" src="%s" />'.format(alt)

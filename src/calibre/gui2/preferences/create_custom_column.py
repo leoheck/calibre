@@ -1,3 +1,6 @@
+#!/usr/bin/env python2
+# vim:fileencoding=UTF-8
+
 __license__   = 'GPL v3'
 __copyright__ = '2010, Kovid Goyal <kovid at kovidgoyal.net>'
 
@@ -13,6 +16,7 @@ from PyQt5.Qt import (
 )
 
 from calibre.gui2 import error_dialog
+
 
 class CreateCustomColumn(QDialog):
 
@@ -132,6 +136,7 @@ class CreateCustomColumn(QDialog):
         c = parent.custcols[col]
         self.column_name_box.setText(c['label'])
         self.column_heading_box.setText(c['name'])
+        self.column_heading_box.setFocus()
         ct = c['datatype']
         if c['is_multiple']:
             ct = '*' + ct
@@ -168,6 +173,8 @@ class CreateCustomColumn(QDialog):
             self.comments_heading_position.setCurrentIndex(idx)
             idx = max(0, self.comments_type.findData(c['display'].get('interpret_as', 'html')))
             self.comments_type.setCurrentIndex(idx)
+        elif ct == 'rating':
+            self.allow_half_stars.setChecked(bool(c['display'].get('allow_half_stars', False)))
         self.datatype_changed()
         if ct in ['text', 'composite', 'enumeration']:
             self.use_decorations.setChecked(c['display'].get('use_decorations', False))
@@ -350,6 +357,11 @@ class CreateCustomColumn(QDialog):
         l.addWidget(ec), l.addWidget(la, 1, 1)
         self.enum_label = add_row(_('&Values'), l)
 
+        # Rating allow half stars
+        self.allow_half_stars = ahs = QCheckBox(_('Allow half stars'))
+        ahs.setToolTip(_('Allow half star ratings, for example: ') + '<span style="font-family:calibre Symbols">★★★½</span>')
+        add_row(None, ahs)
+
         # Composite display properties
         l = QHBoxLayout()
         self.composite_sort_by_label = la = QLabel(_("&Sort/search column by"))
@@ -370,7 +382,7 @@ class CreateCustomColumn(QDialog):
                   'will create a field displaying the title in bold large '
                   'characters, along with the series, for example <br>"<big><b>'
                   'An Oblique Approach</b></big> [Belisarius [1]]". The template '
-                  '<pre>&lt;a href="http://www.beam-ebooks.de/ebook/{identifiers'
+                  '<pre>&lt;a href="https://www.beam-ebooks.de/ebook/{identifiers'
                   ':select(beam)}"&gt;Beam book&lt;/a&gt;</pre> '
                   'will generate a link to the book on the Beam ebooks site.') + '</p>')
         l.addWidget(cch)
@@ -427,6 +439,7 @@ class CreateCustomColumn(QDialog):
         self.comments_heading_position_label.setVisible(is_comments)
         self.comments_type.setVisible(is_comments)
         self.comments_type_label.setVisible(is_comments)
+        self.allow_half_stars.setVisible(col_type == 'rating')
 
     def accept(self):
         col = unicode(self.column_name_box.text()).strip()
@@ -524,6 +537,8 @@ class CreateCustomColumn(QDialog):
         elif col_type == 'comments':
             display_dict['heading_position'] = type(u'')(self.comments_heading_position.currentData())
             display_dict['interpret_as'] = type(u'')(self.comments_type.currentData())
+        elif col_type == 'rating':
+            display_dict['allow_half_stars'] = bool(self.allow_half_stars.isChecked())
 
         if col_type in ['text', 'composite', 'enumeration'] and not is_multiple:
             display_dict['use_decorations'] = self.use_decorations.checkState()

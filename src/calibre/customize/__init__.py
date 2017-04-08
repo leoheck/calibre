@@ -17,6 +17,7 @@ elif isosx:
 class PluginNotFound(ValueError):
     pass
 
+
 class InvalidPlugin(ValueError):
     pass
 
@@ -312,12 +313,14 @@ class Plugin(object):  # {{{
 
 # }}}
 
+
 class FileTypePlugin(Plugin):  # {{{
     '''
     A plugin that is associated with a particular set of file types.
     '''
 
     #: Set of file types for which this plugin should be run.
+    #: Use '*' for all file types.
     #: For example: ``{'lit', 'mobi', 'prc'}``
     file_types     = set()
 
@@ -347,7 +350,9 @@ class FileTypePlugin(Plugin):  # {{{
         modified ebook. If no modifications are needed, it should
         return the path to the original ebook. If an error is encountered
         it should raise an Exception. The default implementation
-        simply return the path to the original ebook.
+        simply return the path to the original ebook. Note that the path to
+        the original file (before any file type plugins are run, is available as
+        self.original_path_to_file).
 
         The modified ebook file should be created with the
         :meth:`temporary_file` method.
@@ -385,12 +390,13 @@ class FileTypePlugin(Plugin):  # {{{
         :param fmt_map: Map of file format to path from which the file format
             was added. Note that this might or might not point to an actual
             existing file, as sometimes files are added as streams. In which case
-            it might be a dummy value or an on-existent path.
+            it might be a dummy value or a non-existent path.
         :param db: Library database
         '''
         pass  # Default implementation does nothing
 
 # }}}
+
 
 class MetadataReaderPlugin(Plugin):  # {{{
     '''
@@ -415,12 +421,14 @@ class MetadataReaderPlugin(Plugin):  # {{{
         Return metadata for the file represented by stream (a file like object
         that supports reading). Raise an exception when there is an error
         with the input data.
+
         :param type: The type of file. Guaranteed to be one of the entries
-        in :attr:`file_types`.
+            in :attr:`file_types`.
         :return: A :class:`calibre.ebooks.metadata.book.Metadata` object
         '''
         return None
 # }}}
+
 
 class MetadataWriterPlugin(Plugin):  # {{{
     '''
@@ -445,13 +453,15 @@ class MetadataWriterPlugin(Plugin):  # {{{
         Set metadata for the file represented by stream (a file like object
         that supports reading). Raise an exception when there is an error
         with the input data.
+
         :param type: The type of file. Guaranteed to be one of the entries
-        in :attr:`file_types`.
+            in :attr:`file_types`.
         :param mi: A :class:`calibre.ebooks.metadata.book.Metadata` object
         '''
         pass
 
 # }}}
+
 
 class CatalogPlugin(Plugin):  # {{{
     '''
@@ -580,6 +590,7 @@ class CatalogPlugin(Plugin):  # {{{
 
 # }}}
 
+
 class InterfaceActionBase(Plugin):  # {{{
 
     supported_platforms = ['windows', 'osx', 'linux']
@@ -606,6 +617,7 @@ class InterfaceActionBase(Plugin):  # {{{
         return ac
 
 # }}}
+
 
 class PreferencesPlugin(Plugin):  # {{{
 
@@ -666,6 +678,7 @@ class PreferencesPlugin(Plugin):  # {{{
 
 # }}}
 
+
 class StoreBase(Plugin):  # {{{
 
     supported_platforms = ['windows', 'osx', 'linux']
@@ -714,6 +727,7 @@ class StoreBase(Plugin):  # {{{
         raise NotImplementedError()
 
 # }}}
+
 
 class ViewerPlugin(Plugin):  # {{{
 
@@ -774,12 +788,14 @@ class ViewerPlugin(Plugin):  # {{{
 
 # }}}
 
+
 class EditBookToolPlugin(Plugin):  # {{{
 
     type = _('Edit Book Tool')
     minimum_calibre_version = (1, 46, 0)
 
 # }}}
+
 
 class LibraryClosedPlugin(Plugin):  # {{{
     '''
@@ -802,4 +818,3 @@ class LibraryClosedPlugin(Plugin):  # {{{
         raise NotImplementedError('LibraryClosedPlugin '
                 'run method must be overridden in subclass')
 # }}}
-

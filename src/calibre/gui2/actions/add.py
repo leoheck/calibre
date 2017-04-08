@@ -17,14 +17,15 @@ from calibre.gui2 import (error_dialog, choose_files, choose_dir,
 from calibre.gui2.dialogs.add_empty_book import AddEmptyBookDialog
 from calibre.gui2.dialogs.confirm_delete import confirm
 from calibre.gui2.dialogs.progress import ProgressDialog
-from calibre.gui2.widgets import IMAGE_EXTENSIONS
 from calibre.ebooks import BOOK_EXTENSIONS
+from calibre.utils.config_base import tweaks
 from calibre.utils.filenames import ascii_filename
 from calibre.utils.icu import sort_key
 from calibre.gui2.actions import InterfaceAction
 from calibre.gui2 import question_dialog
 from calibre.ebooks.metadata import MetaInformation
 from calibre.ptempfile import PersistentTemporaryFile
+
 
 def get_filters():
     return [
@@ -47,7 +48,7 @@ def get_filters():
 class AddAction(InterfaceAction):
 
     name = 'XBOOKX'
-    action_spec = (_('Add books'), 'add_book.png',
+    action_spec = (_('Add'), 'add_book.png',
             _('Add books to the calibre library/device from files on your computer')
             , _('A'))
     action_type = 'current'
@@ -72,7 +73,7 @@ class AddAction(InterfaceAction):
         self.create_menu_action(arm, 'recursive-multiple-archive', _(
             'Multiple books per directory in the archive')).triggered.connect(partial(self.add_archive, False))
         self.add_menu.addSeparator()
-        ma('add-empty', _('Add Empty book. (Book entry with no formats)'),
+        ma('add-empty', _('Add empty book (Book entry with no formats)'),
                 shortcut='Shift+Ctrl+E').triggered.connect(self.add_empty)
         ma('add-isbn', _('Add from ISBN')).triggered.connect(self.add_from_isbn)
         self.add_menu.addSeparator()
@@ -359,11 +360,13 @@ class AddAction(InterfaceAction):
                 return
             cid = db.id(current_idx.row()) if cid is None else cid
         formats = []
+        from calibre.gui2.dnd import image_extensions
+        image_exts = set(image_extensions()) - set(tweaks['cover_drop_exclude'])
         for path in paths:
             ext = os.path.splitext(path)[1].lower()
             if ext:
                 ext = ext[1:]
-            if ext in IMAGE_EXTENSIONS:
+            if ext in image_exts:
                 pmap = QPixmap()
                 pmap.load(path)
                 if not pmap.isNull():
@@ -464,11 +467,13 @@ class AddAction(InterfaceAction):
                 for title in sorted(merged[author], key=sort_key):
                     lines.append('\t' + title)
                 lines.append('')
-            info_dialog(self.gui, _('Merged some books'),
-                _('The following %d duplicate books were found and incoming '
-                    'book formats were processed and merged into your '
-                    'Calibre database according to your automerge '
-                    'settings:')%len(adder.merged_books),
+            pm = ngettext('The following duplicate book was found.',
+                          'The following {} duplicate books were found.',
+                          len(adder.merged_books)).format(len(adder.merged_books))
+            info_dialog(self.gui, _('Merged some books'), pm + ' ' +
+                _('Incoming book formats were processed and merged into your '
+                    'calibre database according to your auto-merge '
+                    'settings:'),
                     det_msg='\n'.join(lines), show=True)
 
         if adder.number_of_books_added > 0 or adder.merged_books:
@@ -500,6 +505,7 @@ class AddAction(InterfaceAction):
                 return
             paths = [p for p in view.model().paths(rows) if p is not None]
         ve = self.gui.device_manager.device.VIRTUAL_BOOK_EXTENSIONS
+
         def ext(x):
             ans = os.path.splitext(x)[1]
             ans = ans[1:] if len(ans) > 1 else ans

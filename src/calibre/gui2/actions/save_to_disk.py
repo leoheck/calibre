@@ -14,10 +14,11 @@ from calibre.utils.config import prefs
 from calibre.gui2 import error_dialog, Dispatcher, choose_dir
 from calibre.gui2.actions import InterfaceAction
 
+
 class SaveToDiskAction(InterfaceAction):
 
     name = "Save To Disk"
-    action_spec = (_('Save to disk'), 'save.png',
+    action_spec = (_('Save'), 'save.png',
                    _('Export ebook files from the calibre library'), _('S'))
     action_type = 'current'
     action_add_menu = True

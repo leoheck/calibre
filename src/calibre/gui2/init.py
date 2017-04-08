@@ -25,10 +25,12 @@ from calibre.gui2.notify import get_notifier
 
 _keep_refs = []
 
+
 def partial(*args, **kwargs):
     ans = functools.partial(*args, **kwargs)
     _keep_refs.append(ans)
     return ans
+
 
 class LibraryViewMixin(object):  # {{{
 
@@ -100,6 +102,7 @@ class LibraryViewMixin(object):  # {{{
 
     # }}}
 
+
 class QuickviewSplitter(QSplitter):  # {{{
 
     def __init__(self, parent=None, orientation=Qt.Vertical, qv_widget=None):
@@ -130,6 +133,7 @@ class QuickviewSplitter(QSplitter):  # {{{
     def hide_quickview_widget(self):
         self.qv_widget.hide()
 # }}}
+
 
 class LibraryWidget(Splitter):  # {{{
 
@@ -165,6 +169,7 @@ class LibraryWidget(Splitter):  # {{{
 
         self.addWidget(parent.quickview_splitter)
 # }}}
+
 
 class Stack(QStackedWidget):  # {{{
 
@@ -204,12 +209,13 @@ class UpdateLabel(QLabel):  # {{{
         pass
 # }}}
 
+
 class StatusBar(QStatusBar):  # {{{
 
     def __init__(self, parent=None):
         QStatusBar.__init__(self, parent)
         self.version = get_version()
-        self.base_msg = '%s %s' % (__appname__, self.version)
+        self.base_msg = '%s %s' % (__appname__.title(), self.version)
         self.device_string = ''
         self.update_label = UpdateLabel('')
         self.total = self.current = self.selected = self.library_total = 0
@@ -248,18 +254,18 @@ class StatusBar(QStatusBar):  # {{{
         if self.device_string:
             msg += ' ..::.. ' + self.device_string
         else:
-            msg += _(' %(created)s %(name)s') % dict(created=_('created by'), name='Kovid Goyal')
+            msg += _(', %(created)s %(name)s') % dict(created=_('mod by'), name='Leandro Heck')
 
         if self.total != self.current:
             base = _('%(num)d of %(total)d books') % dict(num=self.current, total=self.total)
         else:
-            base = _('%d books') % self.total
+            base = ngettext('one book', '{} books', self.total).format(self.total)
         if self.selected > 0:
-            base = _('%(num)s, %(sel)d selected') % dict(num=base, sel=self.selected)
+            base = ngettext('%(num)s, %(sel)d selected', '%(num)s, %(sel)d selected', self.selected) % dict(num=base, sel=self.selected)
         if self.library_total != self.total:
             base = _('{0}, {1} total').format(base, self.library_total)
 
-        self.defmsg.setText(u'%s\xa0\xa0\xa0\xa0[%s]' % (msg, base))
+        self.defmsg.setText(u'%s (%s)' % (msg, base))
         self.clearMessage()
 
     def device_disconnected(self):
@@ -280,6 +286,7 @@ class StatusBar(QStatusBar):  # {{{
         self.clearMessage()
 
 # }}}
+
 
 class GridViewButton(LayoutButton):  # {{{
 
@@ -452,6 +459,7 @@ class VLTabs(QTabBar):  # {{{
         self.rebuild()
 
 # }}}
+
 
 class LayoutMixin(object):  # {{{
 

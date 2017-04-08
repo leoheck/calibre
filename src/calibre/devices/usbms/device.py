@@ -30,9 +30,11 @@ if isosx:
 if iswindows:
     usb_info_cache = {}
 
+
 def eject_exe():
     base = sys.extensions_location if hasattr(sys, 'new_app_layout') else os.path.dirname(sys.executable)
     return os.path.join(base, 'calibre-eject.exe')
+
 
 class USBDevice:
 
@@ -62,10 +64,11 @@ class USBDevice:
             return True
         # As of OS X 10.11.4 Apple started mangling the names returned via the
         # IOKit registry. See
-        # http://www.mobileread.com/forums/showthread.php?t=273213
+        # https://www.mobileread.com/forums/showthread.php?t=273213
         m = osx_sanitize_name_pat.sub('_', (self.manufacturer or ''))
         p = osx_sanitize_name_pat.sub('_', (self.product or ''))
         return m == man and p == prod
+
 
 class Device(DeviceConfig, DevicePlugin):
 
@@ -391,6 +394,7 @@ class Device(DeviceConfig, DevicePlugin):
                 'Could not detect BSD names for %s. Try rebooting.\nOutput from osx_get_usb_drives():\n%s' % (self.name, pformat(drives)))
 
         pat = re.compile(r'(?P<m>\d+)([a-z]+(?P<p>\d+)){0,1}')
+
         def nums(x):
             'Return (disk num, partition number)'
             m = pat.search(x)
@@ -464,6 +468,7 @@ class Device(DeviceConfig, DevicePlugin):
                         break
 
         self._main_prefix = drives['main']+os.sep
+
         def get_card_prefix(c):
             ans = drives.get(c, None)
             if ans is not None:
@@ -540,6 +545,9 @@ class Device(DeviceConfig, DevicePlugin):
                             ok[node] = False
                     except:
                         ok[node] = False
+                    if DEBUG and not ok[node]:
+                        print '\nIgnoring the node: %s as could not read size from: %s' % (node, sz)
+
                     devnodes.append(node)
 
         devnodes += list(repeat(None, 3))
@@ -580,6 +588,7 @@ class Device(DeviceConfig, DevicePlugin):
             mp = self.node_mountpoint(node)
             if mp is not None:
                 return mp, 0
+
             def do_mount(node):
                 try:
                     from calibre.devices.udisks import mount

@@ -12,6 +12,7 @@ import re
 
 from calibre.devices.usbms.driver import USBMS
 
+
 class HANLINV3(USBMS):
 
     name           = 'Hanlin V3 driver'
@@ -81,6 +82,7 @@ class HANLINV3(USBMS):
             drives['carda'] = main
         return drives
 
+
 class SPECTRA(HANLINV3):
 
     name = 'Spectra'
@@ -90,6 +92,7 @@ class SPECTRA(HANLINV3):
     FORMATS = ['epub', 'mobi', 'fb2', 'lit', 'prc', 'chm', 'djvu', 'pdf', 'rtf', 'txt']
 
     SUPPORTS_SUB_DIRS = True
+
 
 class HANLINV5(HANLINV3):
     name           = 'Hanlin V5 driver'
@@ -108,6 +111,7 @@ class HANLINV5(HANLINV3):
 
     OSX_EJECT_COMMAND = ['diskutil', 'unmount', 'force']
 
+
 class BOOX(HANLINV3):
 
     name           = 'BOOX driver'
@@ -117,7 +121,7 @@ class BOOX(HANLINV3):
     supported_platforms = ['windows', 'osx', 'linux']
     METADATA_CACHE = '.metadata.calibre'
     DRIVEINFO = '.driveinfo.calibre'
-    icon           = I('devices/boox.jpg')
+    icon           = I('devices/boox.png')
 
     # Ordered list of supported formats
     FORMATS     = ['epub', 'fb2', 'djvu', 'pdf', 'html', 'txt', 'rtf', 'mobi',

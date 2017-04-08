@@ -16,17 +16,25 @@ from calibre.utils.filenames import ascii_filename
 from calibre.utils.img import resize_to_fit, image_to_data
 from calibre.utils.imghdr import what
 
+
 class LinkedImageNotFound(ValueError):
 
     def __init__(self, fname):
         ValueError.__init__(self, fname)
         self.fname = fname
 
+
+def image_filename(x):
+    return ascii_filename(x).replace(' ', '_').replace('#', '_')
+
+
 def emu_to_pt(x):
     return x / 12700
 
+
 def pt_to_emu(x):
     return int(x * 12700)
+
 
 def get_image_properties(parent, XPath, get):
     width = height = None
@@ -68,34 +76,35 @@ def get_image_margins(elem):
             ans['padding-%s' % css] = '%.3gpt' % val
     return ans
 
-def get_hpos(anchor, page_width, XPath, get):
+
+def get_hpos(anchor, page_width, XPath, get, width_frac):
     for ph in XPath('./wp:positionH')(anchor):
         rp = ph.get('relativeFrom', None)
         if rp == 'leftMargin':
-            return 0
+            return 0 + width_frac
         if rp == 'rightMargin':
-            return 1
+            return 1 + width_frac
+        al = None
+        almap = {'left':0, 'center':0.5, 'right':1}
         for align in XPath('./wp:align')(ph):
-            al = align.text
-            if al == 'left':
-                return 0
-            if al == 'center':
-                return 0.5
-            if al == 'right':
-                return 1
+            al = almap.get(align.text)
+            if al is not None:
+                if rp == 'page':
+                    return al
+                return al + width_frac
         for po in XPath('./wp:posOffset')(ph):
             try:
                 pos = emu_to_pt(int(po.text))
             except (TypeError, ValueError):
                 continue
-            return pos/page_width
+            return pos/page_width + width_frac
 
     for sp in XPath('./wp:simplePos')(anchor):
         try:
             x = emu_to_pt(sp.get('x', None))
         except (TypeError, ValueError):
             continue
-        return x/page_width
+        return x/page_width + width_frac
 
     return 0
 
@@ -125,8 +134,11 @@ class Images(object):
             with open(src, 'rb') as rawsrc:
                 raw = rawsrc.read()
         else:
-            raw = self.docx.read(fname)
-        base = base or ascii_filename(fname.rpartition('/')[-1]).replace(' ', '_') or 'image'
+            try:
+                raw = self.docx.read(fname)
+            except KeyError:
+                raise LinkedImageNotFound(fname)
+        base = base or image_filename(fname.rpartition('/')[-1]) or 'image'
         ext = what(None, raw) or base.rpartition('.')[-1] or 'jpeg'
         if ext == 'emf':
             # For an example, see: https://bugs.launchpad.net/bugs/1224849
@@ -201,7 +213,7 @@ class Images(object):
         for pr in XPath('descendant::pic:cNvPr')(pic):
             name = pr.get('name', None)
             if name:
-                name = ascii_filename(name).replace(' ', '_')
+                name = image_filename(name)
             alt = pr.get('descr', None)
             for a in XPath('descendant::a:blip[@r:embed or @r:link]')(pic):
                 rid = get(a, 'r:embed')
@@ -289,7 +301,7 @@ class Images(object):
             # Ignore margins
             page_width = page.width
 
-        hpos = get_hpos(anchor, page_width, XPath, get) + width/(2*page_width)
+        hpos = get_hpos(anchor, page_width, XPath, get, width/(2*page_width))
 
         wrap_elem = None
         dofloat = False

@@ -20,12 +20,14 @@ def compile_pat(pat):
     REGEX_FLAGS = regex.VERSION1 | regex.UNICODE | regex.IGNORECASE
     return regex.compile(pat, flags=REGEX_FLAGS)
 
+
 def all_properties(decl):
     ' This is needed because CSSStyleDeclaration.getProperties(None, all=True) does not work and is slower than it needs to be. '
     for item in decl.seq:
         p = item.value
         if isinstance(p, Property):
             yield p
+
 
 class StyleDeclaration(object):
 
@@ -95,7 +97,9 @@ class StyleDeclaration(object):
     def __str__(self):
         return force_unicode(self.css_declaration.cssText, 'utf-8')
 
+
 operator_map = {'==':'eq', '!=': 'ne', '<=':'le', '<':'lt', '>=':'ge', '>':'gt', '-':'sub', '+': 'add', '*':'mul', '/':'truediv'}
+
 
 def unit_convert(value, unit, dpi=96.0, body_font_size=12):
     result = None
@@ -117,6 +121,7 @@ def unit_convert(value, unit, dpi=96.0, body_font_size=12):
         result = value * 0.708661417325
     return result
 
+
 def parse_css_length_or_number(raw, default_unit=None):
     if isinstance(raw, (int, long, float)):
         return raw, default_unit
@@ -124,6 +129,7 @@ def parse_css_length_or_number(raw, default_unit=None):
         return float(raw), default_unit
     except Exception:
         return parse_css_length(raw)
+
 
 def numeric_match(value, unit, pts, op, raw):
     try:
@@ -141,6 +147,7 @@ def numeric_match(value, unit, pts, op, raw):
         return False
     return op(p, pts)
 
+
 def transform_number(val, op, raw):
     try:
         v, u = parse_css_length_or_number(raw, default_unit='')
@@ -153,6 +160,7 @@ def transform_number(val, op, raw):
         v = int(v)
     return str(v) + u
 
+
 class Rule(object):
 
     def __init__(self, property='color', match_type='*', query='', action='remove', action_data=''):
@@ -164,9 +172,9 @@ class Rule(object):
         elif self.action in '+-/*':
             self.action_operator = partial(transform_number, float(self.action_data), getattr(operator, operator_map[self.action]))
         if match_type == 'is':
-            self.property_matches = lambda x: x.lower() == query
+            self.property_matches = lambda x: x.lower() == query.lower()
         elif match_type == 'is_not':
-            self.property_matches = lambda x: x.lower() != query
+            self.property_matches = lambda x: x.lower() != query.lower()
         elif match_type == '*':
             self.property_matches = lambda x: True
         elif 'matches' in match_type:
@@ -200,6 +208,7 @@ class Rule(object):
         declaration.changed = oval or changed
         return changed
 
+
 ACTION_MAP = OrderedDict((
     ('remove', _('Remove the property')),
     ('append', _('Add extra properties')),
@@ -225,6 +234,7 @@ MATCH_TYPE_MAP = OrderedDict((
 ))
 
 allowed_keys = frozenset('property match_type query action action_data'.split())
+
 
 def validate_rule(rule):
     keys = frozenset(rule)
@@ -281,8 +291,10 @@ def validate_rule(rule):
             return _('Invalid number'), _('%s is not a number') % ad
     return None, None
 
+
 def compile_rules(serialized_rules):
     return [Rule(**r) for r in serialized_rules]
+
 
 def transform_declaration(compiled_rules, decl):
     decl = StyleDeclaration(decl)
@@ -292,12 +304,14 @@ def transform_declaration(compiled_rules, decl):
             changed = True
     return changed
 
+
 def transform_sheet(compiled_rules, sheet):
     changed = False
     for rule in sheet.cssRules.rulesOfType(CSSRule.STYLE_RULE):
         if transform_declaration(compiled_rules, rule.style):
             changed = True
     return changed
+
 
 def transform_container(container, serialized_rules, names=()):
     from calibre.ebooks.oeb.polish.css import transform_css
@@ -306,6 +320,7 @@ def transform_container(container, serialized_rules, names=()):
         container, transform_sheet=partial(transform_sheet, rules),
         transform_style=partial(transform_declaration, rules), names=names
     )
+
 
 def rule_to_text(rule):
     def get(prop):
@@ -318,6 +333,7 @@ def rule_to_text(rule):
         text += get('action_data')
     return text
 
+
 def export_rules(serialized_rules):
     lines = []
     for rule in serialized_rules:
@@ -325,6 +341,7 @@ def export_rules(serialized_rules):
         lines.extend('%s: %s' % (k, v.replace('\n', ' ')) for k, v in rule.iteritems() if k in allowed_keys)
         lines.append('')
     return '\n'.join(lines).encode('utf-8')
+
 
 def import_rules(raw_data):
     import regex
@@ -350,6 +367,7 @@ def import_rules(raw_data):
     if current_rule:
         yield sanitize(current_rule)
 
+
 def test(return_tests=False):  # {{{
     import unittest
 
@@ -367,7 +385,7 @@ def test(return_tests=False):  # {{{
         def test_matching(self):
 
             def m(match_type='*', query=''):
-                self.ae(ecss, apply_rule(css, property=prop, match_type=match_type, query=query))
+                self.ae(apply_rule(css, property=prop, match_type=match_type, query=query), ecss)
 
             prop = 'color'
             css, ecss = 'color: red; margin: 0', 'margin: 0'
@@ -378,6 +396,8 @@ def test(return_tests=False):  # {{{
             m('not_matches', 'blue')
             ecss = css.replace('; ', ';\n')
             m('is', 'blue')
+            css, ecss = 'color: currentColor; line-height: 0', 'line-height: 0'
+            m('is', 'currentColor')
 
             prop = 'margin-top'
             css, ecss = 'color: red; margin-top: 10', 'color: red'
@@ -434,6 +454,7 @@ def test(return_tests=False):  # {{{
     if return_tests:
         return tests
     unittest.TextTestRunner(verbosity=4).run(tests)
+
 
 if __name__ == '__main__':
     test()

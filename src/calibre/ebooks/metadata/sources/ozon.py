@@ -22,6 +22,8 @@ from calibre.ebooks.metadata.book.base import Metadata
 
 class Ozon(Source):
     name = 'OZON.ru'
+    minimum_calibre_version = (2, 80, 0)
+    version = (1, 0, 0)
     description = _('Downloads metadata and covers from OZON.ru (updated)')
 
     capabilities = frozenset(['identify', 'cover'])
@@ -35,7 +37,7 @@ class Ozon(Source):
     supports_gzip_transfer_encoding = True
     has_html_comments = True
 
-    ozon_url = 'http://www.ozon.ru'
+    ozon_url = 'https://www.ozon.ru'
 
     # match any ISBN10/13. From "Regular Expressions Cookbook"
     isbnPattern = r'(?:ISBN(?:-1[03])?:? )?(?=[-0-9 ]{17}|' \
@@ -84,13 +86,15 @@ class Ozon(Source):
         # Added Russian variant of 'Unknown'
         unk = [_('Unknown').upper(), 'Неизв.'.upper(), icu_upper('Неизв.')]
 
-        if title and title not in unk:
-            qItems.add(title)
+        # use only ozonid if specified otherwise ozon.ru does not like a combination
+        if not ozonid:
+            if title and title not in unk:
+                qItems.add(title)
 
-        if authors:
-            for auth in authors:
-                if icu_upper(auth) not in unk:
-                    qItems.add(auth)
+            if authors:
+                for auth in authors:
+                    if icu_upper(auth) not in unk:
+                        qItems.add(auth)
 
         qItems.discard(None)
         qItems.discard('')
@@ -102,7 +106,7 @@ class Ozon(Source):
             return None
 
         search_url += quote_plus(searchText)
-        log.debug(u'search url: %r' % search_url)
+        log.debug(u'search url: %s' % search_url)
         return search_url
 
     # }}}
@@ -112,6 +116,7 @@ class Ozon(Source):
         from calibre.ebooks.chardet import xml_to_unicode
         from HTMLParser import HTMLParser
         from lxml import etree, html
+        import json
 
         if not self.is_configured():
             return
@@ -131,8 +136,11 @@ class Ozon(Source):
             doc = html.fromstring(xml_to_unicode(raw, verbose=True)[0])
             entries_block = doc.xpath(u'//div[@class="bSearchResult"]')
 
+            # log.debug(u'HTML: %s' % xml_to_unicode(raw, verbose=True)[0])
+
             if entries_block:
                 entries = doc.xpath(u'//div[contains(@itemprop, "itemListElement")]')
+                # log.debug(u'entries_block')
                 # for entry in entries:
                 #   log.debug('entries %s' % entree.tostring(entry))
                 metadata = self.get_metadata(log, entries, title, authors, identifiers)
@@ -140,19 +148,30 @@ class Ozon(Source):
             else:
                 # Redirect page: trying to extract ozon_id from javascript data
                 h = HTMLParser()
-                entry_string = (h.unescape(unicode(etree.tostring(doc, pretty_print=True))))
-                id_title_pat = re.compile(u'products":\[{"id":(\d{7}),"name":"([а-яА-Я :\-0-9]+)')
-                # result containing ozon_id and entry_title
-                entry_info = re.search(id_title_pat, entry_string)
-                ozon_id = entry_info.group(1) if entry_info else None
-                entry_title = entry_info.group(2) if entry_info else None
+                entry_string = (h.unescape(etree.tostring(doc, pretty_print=True, encoding=unicode)))
+                json_pat = re.compile(u'dataLayer\s*=\s*(.+)?;')
+                json_info = re.search(json_pat, entry_string)
+                jsondata = json_info.group(1) if json_info else None
 
-                if ozon_id:
-                    metadata = self.to_metadata_for_single_entry(log, ozon_id, entry_title, authors)
-                    identifiers['ozon'] = ozon_id
-                    self.get_all_details(log, [metadata], abort, result_queue, identifiers, timeout, cachedPagesDict={})
-                else:
-                    log.error('No SearchResults in Ozon.ru response found')
+                # log.debug(u'jsondata: %s' % jsondata)
+                dataLayer = json.loads(jsondata) if jsondata else None
+
+                ozon_id = None
+                if dataLayer and dataLayer[0] and 'ecommerce' in dataLayer[0]:
+                    jsproduct = dataLayer[0]['ecommerce']['detail']['products'][0]
+                    ozon_id = as_unicode(jsproduct['id'])
+                    entry_title = as_unicode(jsproduct['name'])
+
+                    log.debug(u'ozon_id %s' % ozon_id)
+                    log.debug(u'entry_title %s' % entry_title)
+
+                    if ozon_id:
+                        metadata = self.to_metadata_for_single_entry(log, ozon_id, entry_title, authors)
+                        identifiers['ozon'] = ozon_id
+                        self.get_all_details(log, [metadata], abort, result_queue, identifiers, timeout, cachedPagesDict={})
+
+                if not ozon_id:
+                    log.error('No SearchResults in Ozon.ru response found!')
 
         except Exception as e:
             log.exception('Failed to parse identify results')
@@ -297,10 +316,10 @@ class Ozon(Source):
     # }}}
 
     def to_metadata(self, log, entry):  # {{{
-        title = unicode(entry.xpath(u'normalize-space(.//span[@itemprop="name"][1]/text())'))
+        title = unicode(entry.xpath(u'normalize-space(.//div[@itemprop="name"][1]/text())'))
         # log.debug(u'Title: -----> %s' % title)
 
-        author = unicode(entry.xpath(u'normalize-space(.//a[contains(@href, "person")])'))
+        author = unicode(entry.xpath(u'normalize-space(.//div[contains(@class, "mPerson")])'))
         # log.debug(u'Author: -----> %s' % author)
 
         norm_authors = map(_normalizeAuthorNameWithInitials, map(unicode.strip, unicode(author).split(u',')))
@@ -478,7 +497,7 @@ class Ozon(Source):
         langs_elem = doc.xpath(u'//div[contains(text(), "зык")]')
         if langs_elem:
             langs_elem = langs_elem[0].getnext()
-            langs = langs_elem.xpath(u'text()')[0].strip()
+            langs = langs_elem.xpath(u'text()')[0].strip() if langs_elem else None
         if langs:
             lng_splt = langs.split(u',')
             if lng_splt:
@@ -522,7 +541,7 @@ def _translateToBigCoverUrl(coverUrl):  # {{{
     # http://www.ozon.ru/multimedia/books_covers/1009493080.jpg
     m = re.match(r'.+\/([^\.\\]+).+$', coverUrl)
     if m:
-        coverUrl = 'http://www.ozon.ru/multimedia/books_covers/' + m.group(1) + '.jpg'
+        coverUrl = 'https://www.ozon.ru/multimedia/books_covers/' + m.group(1) + '.jpg'
     return coverUrl
 
 
@@ -576,8 +595,8 @@ def _format_isbn(log, isbn):  # {{{
             log.error('cannot format ISBN %s. Fow now only russian ISBNs are supported' % isbn)
     return res
 
-
 # }}}
+
 
 def _translageLanguageToCode(displayLang):  # {{{
     displayLang = unicode(displayLang).strip() if displayLang else None

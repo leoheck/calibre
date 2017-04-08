@@ -15,7 +15,8 @@ isfreebsd = 'freebsd' in sys.platform
 isnetbsd = 'netbsd' in sys.platform
 isdragonflybsd = 'dragonfly' in sys.platform
 isbsd = isnetbsd or isfreebsd or isdragonflybsd
-islinux = not isosx and not iswindows and not isbsd
+ishaiku = 'haiku1' in sys.platform
+islinux = not isosx and not iswindows and not isbsd and not ishaiku
 sys.setup_dir = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.abspath(os.path.join(os.path.dirname(sys.setup_dir), 'src'))
 sys.path.insert(0, SRC)
@@ -26,6 +27,7 @@ sys.running_from_setup = True
 __version__ = __appname__ = modules = functions = basenames = scripts = None
 
 _cache_dir_built = False
+
 
 def newer(targets, sources):
     if isinstance(targets, basestring):
@@ -40,6 +42,14 @@ def newer(targets, sources):
     newest_source, oldest_target = max(stimes), min(ttimes)
     return newest_source > oldest_target
 
+
+def download_securely(url):
+    # We use curl here as on some OSes (OS X) when bootstrapping calibre,
+    # python will be unable to validate certificates until after cacerts is
+    # installed
+    return subprocess.check_output(['curl', '-fsSL', url])
+
+
 def build_cache_dir():
     global _cache_dir_built
     ans = os.path.join(os.path.dirname(SRC), '.build-cache')
@@ -52,10 +62,12 @@ def build_cache_dir():
                 raise
     return ans
 
+
 def require_git_master():
     if subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip() != 'master':
         print >>sys.stderr, 'You must be in the master git branch'
         raise SystemExit(1)
+
 
 def require_clean_git():
     c = subprocess.check_call
@@ -69,6 +81,7 @@ def require_clean_git():
         if p('git diff-index --cached --quiet --ignore-submodules HEAD --'.split()).wait() != 0:
             print >>sys.stderr, 'Your git index contains uncommitted changes'
             raise SystemExit(1)
+
 
 def initialize_constants():
     global __version__, __appname__, modules, functions, basenames, scripts
@@ -102,9 +115,11 @@ def initialize_constants():
         modules[x] = list(map(e2m, entry_points[y]))
         scripts[x] = list(map(e2s, entry_points[y]))
 
+
 initialize_constants()
 
 preferred_encoding = 'utf-8'
+
 
 def prints(*args, **kwargs):
     '''
@@ -144,10 +159,13 @@ def prints(*args, **kwargs):
             file.write(sep)
     file.write(end)
 
+
 warnings = []
+
 
 def get_warnings():
     return list(warnings)
+
 
 class Command(object):
 
@@ -252,6 +270,7 @@ class Command(object):
         warnings.append((args, kwargs))
         sys.stdout.flush()
 
+
 def installer_name(ext, is64bit=False):
     if is64bit and ext == 'msi':
         return 'dist/%s-64bit-%s.msi'%(__appname__, __version__)
@@ -266,6 +285,3 @@ def installer_name(ext, is64bit=False):
     if is64bit:
         ans = ans.replace('i686', 'x86_64')
     return ans
-
-
-

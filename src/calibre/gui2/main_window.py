@@ -13,6 +13,7 @@ from calibre.utils.config import OptionParser
 from calibre.gui2 import error_dialog
 from calibre import prints
 
+
 def option_parser(usage='''\
 Usage: %prog [options]
 
@@ -20,6 +21,7 @@ Launch the Graphical User Interface
 '''):
     parser = OptionParser(usage)
     return parser
+
 
 class GarbageCollector(QObject):
 
@@ -68,6 +70,7 @@ class GarbageCollector(QObject):
         for obj in gc.garbage:
             print (obj, repr(obj), type(obj))
 
+
 class ExceptionHandler(object):
 
     def __init__(self, main_window):
@@ -79,6 +82,7 @@ class ExceptionHandler(object):
             mw.unhandled_exception(type, value, tb)
         else:
             sys.__excepthook__(type, value, tb)
+
 
 class MainWindow(QMainWindow):
 
@@ -161,10 +165,12 @@ class MainWindow(QMainWindow):
             self.window_unblocked.emit()
         return QMainWindow.event(self, ev)
 
+
 def clone_menu(menu):
     # This is needed to workaround a bug in Qt 5.5+ and Unity. When the same
     # QAction object is used in both a QMenuBar and a QMenu, sub-menus of the
     # QMenu flicker when rendered under Unity.
+
     def clone_action(ac, parent):
         if ac.isSeparator():
             ans = QAction(parent)
@@ -180,6 +186,7 @@ def clone_menu(menu):
         return ans
 
     def clone_one_menu(m):
+        m.aboutToShow.emit()
         ans = QMenu(m.parent())
         for ac in m.actions():
             cac = clone_action(ac, ans)

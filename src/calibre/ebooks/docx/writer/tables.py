@@ -11,12 +11,15 @@ from collections import namedtuple
 from calibre.ebooks.docx.writer.utils import convert_color
 from calibre.ebooks.docx.writer.styles import read_css_block_borders as rcbb, border_edges
 
+
 class Dummy(object):
     pass
+
 
 Border = namedtuple('Border', 'css_style style width color level')
 border_style_weight = {
     x:100-i for i, x in enumerate(('double', 'solid', 'dashed', 'dotted', 'ridge', 'outset', 'groove', 'inset'))}
+
 
 class SpannedCell(object):
 
@@ -34,6 +37,10 @@ class SpannedCell(object):
         makeelement(tcPr, 'w:%sMerge' % ('h' if self.horizontal else 'v'), w_val='continue')
         makeelement(tc, 'w:p')
 
+    def applicable_borders(self, edge):
+        return self.spanning_cell.applicable_borders(edge)
+
+
 def read_css_block_borders(self, css):
     obj = Dummy()
     rcbb(obj, css, store_css_style=True)
@@ -47,12 +54,14 @@ def read_css_block_borders(self, css):
         ))
         setattr(self, 'padding_' + edge, getattr(obj, 'padding_' + edge))
 
+
 def as_percent(x):
     if x and x.endswith('%'):
         try:
             return float(x.rstrip('%'))
         except Exception:
             pass
+
 
 def convert_width(tag_style):
     if tag_style is not None:
@@ -69,11 +78,12 @@ def convert_width(tag_style):
                 pass
     return ('auto', 0)
 
+
 class Cell(object):
 
     BLEVEL = 2
 
-    def __init__(self, row, html_tag, tag_style):
+    def __init__(self, row, html_tag, tag_style=None):
         self.row = row
         self.table = self.row.table
         self.html_tag = html_tag
@@ -85,7 +95,10 @@ class Cell(object):
             self.col_span = max(0, int(html_tag.get('colspan', 1)))
         except Exception:
             self.col_span = 1
-        self.valign = {'top':'top', 'bottom':'bottom', 'middle':'center'}.get(tag_style._get('vertical-align'))
+        if tag_style is None:
+            self.valign = 'center'
+        else:
+            self.valign = {'top':'top', 'bottom':'bottom', 'middle':'center'}.get(tag_style._get('vertical-align'))
         self.items = []
         self.width = convert_width(tag_style)
         self.background_color = None if tag_style is None else convert_color(tag_style.backgroundColor)
@@ -197,6 +210,7 @@ class Cell(object):
                 ans = self.table.rows[ridx+1].cells[idx]
         return getattr(ans, 'spanning_cell', ans)
 
+
 class Row(object):
 
     BLEVEL = 1
@@ -204,6 +218,7 @@ class Row(object):
     def __init__(self, table, html_tag, tag_style=None):
         self.table = table
         self.html_tag = html_tag
+        self.orig_tag_style = tag_style
         self.cells = []
         self.current_cell = None
         self.background_color = None if tag_style is None else convert_color(tag_style.backgroundColor)
@@ -227,15 +242,20 @@ class Row(object):
                 self.current_cell = None
 
     def add_block(self, block):
+        if self.current_cell is None:
+            self.start_new_cell(self.html_tag, self.orig_tag_style)
         self.current_cell.add_block(block)
 
     def add_table(self, table):
+        if self.current_cell is None:
+            self.current_cell = Cell(self, self.html_tag, self.orig_tag_style)
         return self.current_cell.add_table(table)
 
     def serialize(self, parent, makeelement):
         tr = makeelement(parent, 'w:tr')
         for cell in self.cells:
             cell.serialize(tr, makeelement)
+
 
 class Table(object):
 
@@ -244,6 +264,7 @@ class Table(object):
     def __init__(self, namespace, html_tag, tag_style=None):
         self.namespace = namespace
         self.html_tag = html_tag
+        self.orig_tag_style = tag_style
         self.rows = []
         self.current_row = None
         self.width = convert_width(tag_style)
@@ -324,6 +345,8 @@ class Table(object):
         self.current_row.add_block(block)
 
     def add_table(self, table):
+        if self.current_row is None:
+            self.current_row = Row(self, self.html_tag, self.orig_tag_style)
         return self.current_row.add_table(table)
 
     def serialize(self, parent):

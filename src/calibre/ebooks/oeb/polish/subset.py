@@ -17,6 +17,7 @@ from calibre.utils.fonts.sfnt.subset import subset
 from calibre.utils.fonts.sfnt.errors import UnsupportedFont
 from calibre.utils.fonts.utils import get_font_names
 
+
 def remove_font_face_rules(container, sheet, remove_names, base):
     changed = False
     for rule in tuple(sheet.cssRules):
@@ -31,6 +32,7 @@ def remove_font_face_rules(container, sheet, remove_names, base):
             sheet.deleteRule(rule)
             changed = True
     return changed
+
 
 def subset_all_fonts(container, font_stats, report):
     remove = set()
@@ -103,6 +105,7 @@ def subset_all_fonts(container, font_stats, report):
         report(_('No embedded fonts found'))
     return changed
 
+
 if __name__ == '__main__':
     from calibre.ebooks.oeb.polish.container import get_container
     from calibre.ebooks.oeb.polish.stats import StatsCollector
@@ -121,4 +124,3 @@ if __name__ == '__main__':
         prints(msg)
     print()
     prints('Output written to:', outbook)
-

@@ -17,7 +17,7 @@ from functools import partial
 from xml.sax.saxutils import escape, quoteattr
 
 USER_AGENT = 'calibre mirror'
-MR_URL = 'http://www.mobileread.com/forums/'
+MR_URL = 'https://www.mobileread.com/forums/'
 IS_PRODUCTION = os.path.exists('/srv/plugins')
 WORKDIR = '/srv/plugins' if IS_PRODUCTION else '/t/plugins'
 PLUGINS = 'plugins.json.bz2'
@@ -28,6 +28,7 @@ IndexEntry = namedtuple('IndexEntry', 'name url donate history uninstall depreca
 u = HTMLParser.HTMLParser().unescape
 
 socket.setdefaulttimeout(60)
+
 
 def read(url, get_info=False):  # {{{
     if url.startswith("file://"):
@@ -52,12 +53,14 @@ def read(url, get_info=False):  # {{{
     return raw
 # }}}
 
+
 def url_to_plugin_id(url, deprecated):
     query = urlparse.parse_qs(urlparse.urlparse(url).query)
     ans = (query['t'] if 't' in query else query['p'])[0]
     if deprecated:
         ans += '-deprecated'
     return ans
+
 
 def parse_index(raw=None):  # {{{
     raw = raw or read(INDEX).decode('utf-8', 'replace')
@@ -67,7 +70,7 @@ def parse_index(raw=None):  # {{{
     key_pat = re.compile(r'''(?is)(History|Uninstall)\s*:\s*([^<;]+)[<;]''')
     seen = {}
 
-    for match in re.finditer(r'''(?is)<li.+?<a\s+href=['"](http://www.mobileread.com/forums/showthread.php\?[pt]=\d+).+?>(.+?)<(.+?)</li>''', raw):
+    for match in re.finditer(r'''(?is)<li.+?<a\s+href=['"](https://www.mobileread.com/forums/showthread.php\?[pt]=\d+).+?>(.+?)<(.+?)</li>''', raw):
         deprecated = match.start() > dep_start
         donate = uninstall = None
         history = False
@@ -90,12 +93,14 @@ def parse_index(raw=None):  # {{{
         yield entry
 # }}}
 
+
 def parse_plugin_zip_url(raw):
     for m in re.finditer(r'''(?is)<a\s+href=['"](attachment.php\?[^'"]+?)['"][^>]*>([^<>]+?\.zip)\s*<''', raw):
         url, name = u(m.group(1)), u(m.group(2).strip())
         if name.lower().endswith('.zip'):
             return MR_URL + url, name
     return None, None
+
 
 def load_plugins_index():
     try:
@@ -108,6 +113,8 @@ def load_plugins_index():
     return json.loads(bz2.decompress(raw))
 
 # Get metadata from plugin zip file {{{
+
+
 def convert_node(fields, x, names={}, import_data=None):
     name = x.__class__.__name__
     conv = lambda x:convert_node(fields, x, names=names, import_data=import_data)
@@ -136,7 +143,9 @@ def convert_node(fields, x, names={}, import_data=None):
             return x.right.s.decode('utf-8') if isinstance(x.right.s, bytes) else x.right.s
     raise TypeError('Unknown datatype %s for fields: %s' % (x, fields))
 
+
 Alias = namedtuple('Alias', 'name asname')
+
 
 def get_import_data(name, mod, zf, names):
     mod = mod.split('.')
@@ -157,6 +166,7 @@ def get_import_data(name, mod, zf, names):
     else:
         raise ValueError('Failed to find module: %r' % mod)
 
+
 def parse_metadata(raw, namelist, zf):
     module = ast.parse(raw, filename='__init__.py')
     top_level_imports = filter(lambda x:x.__class__.__name__ == 'ImportFrom', ast.iter_child_nodes(module))
@@ -176,7 +186,7 @@ def parse_metadata(raw, namelist, zf):
             names = [Alias(n.name, getattr(n, 'asname', None)) for n in names]
             if mod in {
                 'calibre.customize', 'calibre.customize.conversion',
-                'calibre.ebooks.metadata.sources.base', 'calibre.ebooks.metadata.covers',
+                'calibre.ebooks.metadata.sources.base', 'calibre.ebooks.metadata.sources.amazon', 'calibre.ebooks.metadata.covers',
                 'calibre.devices.interface', 'calibre.ebooks.metadata.fetch', 'calibre.customize.builtins',
                        } or re.match(r'calibre\.devices\.[a-z0-9]+\.driver', mod) is not None:
                 inames = {n.asname or n.name for n in names}
@@ -232,6 +242,7 @@ def parse_metadata(raw, namelist, zf):
 
     raise ValueError('Could not find plugin class')
 
+
 def check_qt5_compatibility(zf, names):
     uses_qt = False
     for name in names:
@@ -242,6 +253,7 @@ def check_qt5_compatibility(zf, names):
             if uses_qt and has_qt4 and b'PyQt5' not in raw:
                 return False
     return True
+
 
 def get_plugin_info(raw, check_for_qt5=False):
     metadata = None
@@ -290,6 +302,7 @@ def update_plugin_from_entry(plugin, entry):
     for x in ('donate', 'history', 'deprecated', 'uninstall', 'thread_id'):
         plugin[x] = getattr(entry, x)
 
+
 def fetch_plugin(old_index, entry):
     lm_map = {plugin['thread_id']:plugin for plugin in old_index.itervalues()}
     raw = read(entry.url)
@@ -323,6 +336,7 @@ def fetch_plugin(old_index, entry):
         f.write(raw)
     return plugin
 
+
 def parallel_fetch(old_index, entry):
     try:
         return fetch_plugin(old_index, entry)
@@ -330,11 +344,13 @@ def parallel_fetch(old_index, entry):
         import traceback
         return traceback.format_exc()
 
+
 def log(*args, **kwargs):
     print (*args, **kwargs)
     with open('log', 'a') as f:
         kwargs['file'] = f
         print (*args, **kwargs)
+
 
 def atomic_write(raw, name):
     with tempfile.NamedTemporaryFile(dir=os.getcwdu(), delete=False) as f:
@@ -342,10 +358,13 @@ def atomic_write(raw, name):
         os.fchmod(f.fileno(), stat.S_IREAD|stat.S_IWRITE|stat.S_IRGRP|stat.S_IROTH)
         os.rename(f.name, name)
 
+
 def fetch_plugins(old_index):
     ans = {}
     pool = ThreadPool(processes=10)
     entries = tuple(parse_index())
+    if not entries:
+        raise SystemExit('Could not find any plugins, probably the markup on the MR index page has changed')
     with closing(pool):
         result = pool.map(partial(parallel_fetch, old_index), entries)
     for entry, plugin in zip(entries, result):
@@ -370,6 +389,7 @@ def fetch_plugins(old_index):
     for x in extra:
         os.unlink(x)
     return ans
+
 
 def plugin_to_index(plugin, count):
     title = '<h3><img src="plugin-icon.png"><a href=%s title="Plugin forum thread">%s</a></h3>' % (  # noqa
@@ -400,6 +420,7 @@ def plugin_to_index(plugin, count):
     if desc:
         desc = '<p>%s</p>' % desc
     return '%s\n%s\n%s\n%s\n\n' % (title, desc, block, zipfile)
+
 
 def create_index(index, raw_stats):
     plugins = []
@@ -482,6 +503,8 @@ h1 { text-align: center }
 
 
 _singleinstance = None
+
+
 def singleinstance():
     global _singleinstance
     s = _singleinstance = socket.socket(socket.AF_UNIX)
@@ -492,6 +515,7 @@ def singleinstance():
             return False
         raise
     return True
+
 
 def update_stats():
     log = olog = 'stats.log'
@@ -520,6 +544,7 @@ def update_stats():
     with open('stats.json', 'wb') as f:
         json.dump(stats, f, indent=2)
     return stats
+
 
 def check_for_qt5_incompatibility():
     ok_plugins, bad_plugins = [], []
@@ -557,7 +582,7 @@ h1 { text-align: center }
 </ul>
 </body>
 </html>
-    ''' % (len(ok_plugins), len(bad_plugins), len(ok_plugins)/(len(ok_plugins) + len(bad_plugins)) * 100,
+    ''' % (len(ok_plugins), len(bad_plugins), len(ok_plugins)/(max(1, len(ok_plugins) + len(bad_plugins))) * 100,
            '\n'.join(sorted(gplugs, key=lambda x:x.lower())),
            '\n'.join(sorted(plugs, key=lambda x:x.lower())))
     with open('porting.html', 'wb') as f:
@@ -591,6 +616,7 @@ def main():
         log('Failed to run at:', datetime.utcnow().isoformat())
         log(traceback.format_exc())
         raise SystemExit(1)
+
 
 def test_parse():  # {{{
     raw = read(INDEX).decode('utf-8', 'replace')
@@ -650,6 +676,7 @@ def test_parse():  # {{{
 
 # }}}
 
+
 def test_parse_metadata():  # {{{
     raw = b'''\
 import os
@@ -682,6 +709,7 @@ class HelloWorld(FileTypePlugin):
     assert get_plugin_info(buf.getvalue()) == vals
 
 # }}}
+
 
 if __name__ == '__main__':
     # test_parse_metadata()

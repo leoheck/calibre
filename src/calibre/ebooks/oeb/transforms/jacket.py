@@ -24,6 +24,7 @@ from calibre.ebooks.metadata import fmt_sidx
 
 JACKET_XPATH = '//h:meta[@name="calibre-content" and @content="jacket"]'
 
+
 class SafeFormatter(Formatter):
 
     def get_value(self, *args, **kwargs):
@@ -32,11 +33,8 @@ class SafeFormatter(Formatter):
         except KeyError:
             return ''
 
-class Jacket(object):
-    '''
-    Book jacket manipulation. Remove first image and insert comments at start of
-    book.
-    '''
+
+class Base(object):
 
     def remove_images(self, item, limit=1):
         path = XPath('//h:img[@src]')
@@ -48,13 +46,19 @@ class Jacket(object):
             image = self.oeb.manifest.hrefs.get(href, None)
             if image is not None:
                 self.oeb.manifest.remove(image)
+                self.oeb.guide.remove_by_href(href)
                 img.getparent().remove(img)
                 removed += 1
         return removed
 
+
+class RemoveFirstImage(Base):
+
     def remove_first_image(self):
         deleted_item = None
         for item in self.oeb.spine:
+            if XPath(JACKET_XPATH)(item.data):
+                continue
             removed = self.remove_images(item)
             if removed > 0:
                 self.log('Removed first image')
@@ -72,6 +76,23 @@ class Jacket(object):
                 href = urldefrag(item.href)[0]
                 if href == deleted_item.href:
                     self.oeb.toc.remove(item)
+            self.oeb.guide.remove_by_href(deleted_item.href)
+
+    def __call__(self, oeb, opts, metadata):
+        '''
+        Add metadata in jacket.xhtml if specified in opts
+        If not specified, remove previous jacket instance
+        '''
+        self.oeb, self.opts, self.log = oeb, opts, oeb.log
+        if opts.remove_first_image:
+            self.remove_first_image()
+
+
+class Jacket(Base):
+    '''
+    Book jacket manipulation. Remove first image and insert comments at start of
+    book.
+    '''
 
     def insert_metadata(self, mi):
         self.log('Inserting metadata into book...')
@@ -123,12 +144,11 @@ class Jacket(object):
         '''
         self.oeb, self.opts, self.log = oeb, opts, oeb.log
         self.remove_existing_jacket()
-        if opts.remove_first_image:
-            self.remove_first_image()
         if opts.insert_metadata:
             self.insert_metadata(metadata)
 
 # Render Jacket {{{
+
 
 def get_rating(rating, rchar, e_rchar):
     ans = ''
@@ -144,6 +164,7 @@ def get_rating(rating, rchar, e_rchar):
     ans = ("%s%s") % (rchar * int(num), e_rchar * (5 - int(num)))
     return ans
 
+
 class Series(unicode):
 
     def __new__(self, series, series_index):
@@ -157,6 +178,7 @@ class Series(unicode):
         s.roman = roman
         return s
 
+
 class Tags(unicode):
 
     def __new__(self, tags, output_profile):
@@ -165,6 +187,7 @@ class Tags(unicode):
         t.alphabetical = ', '.join(sorted(tags, key=sort_key))
         t.tags_list = tags
         return t
+
 
 def render_jacket(mi, output_profile,
         alt_title=_('Unknown'), alt_tags=[], alt_comments='',
@@ -312,6 +335,7 @@ def render_jacket(mi, output_profile,
 
 # }}}
 
+
 def linearize_jacket(oeb):
     for x in oeb.spine[:4]:
         if XPath(JACKET_XPATH)(x.data):
@@ -320,6 +344,7 @@ def linearize_jacket(oeb):
             for e in XPath('//h:td')(x.data):
                 e.tag = XHTML('span')
             break
+
 
 def referenced_images(root):
     for img in XPath('//h:img[@src]')(root):
@@ -330,4 +355,3 @@ def referenced_images(root):
                 path = path[1:]
             if os.path.exists(path):
                 yield img, path
-

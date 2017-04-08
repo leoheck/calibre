@@ -12,6 +12,7 @@ from lxml import etree
 from calibre import guess_type
 from calibre.utils.imghdr import identify
 
+
 class CoverManager(object):
 
     SVG_TEMPLATE = textwrap.dedent('''\
@@ -72,7 +73,7 @@ class CoverManager(object):
             style = 'style="height: 100%%"'
         else:
             width, height = fixed_size
-            style = 'style="height: %s; width: %s"'%(width, height)
+            style = 'style="height: %s; width: %s"'%(height, width)
         self.non_svg_template = self.NONSVG_TEMPLATE.replace('__style__',
                 style)
 
@@ -95,7 +96,10 @@ class CoverManager(object):
             from calibre.ebooks.covers import create_cover
             series = series_index = None
             if m.series:
-                series, series_index = unicode(m.series[0]), m.series_index[0]
+                try:
+                    series, series_index = unicode(m.series[0]), m.series_index[0]
+                except IndexError:
+                    pass
             img_data = create_cover(title, authors, series, series_index)
             id, href = self.oeb.manifest.generate('cover',
                     u'cover_image.jpg')

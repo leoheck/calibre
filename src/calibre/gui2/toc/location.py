@@ -17,8 +17,9 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 from PyQt5.QtWebKit import QWebElement
 
 from calibre.ebooks.oeb.display.webview import load_html
-from calibre.gui2 import error_dialog, question_dialog, gprefs
+from calibre.gui2 import error_dialog, question_dialog, gprefs, secure_web_page
 from calibre.utils.logging import default_log
+
 
 class Page(QWebPage):  # {{{
 
@@ -27,6 +28,7 @@ class Page(QWebPage):  # {{{
     def __init__(self):
         self.log = default_log
         QWebPage.__init__(self)
+        secure_web_page(self.settings())
         self.js = None
         self.evaljs = self.mainFrame().evaluateJavaScript
         self.bridge_value = None
@@ -58,6 +60,7 @@ class Page(QWebPage):  # {{{
         self.mainFrame().addToJavaScriptWindowObject("py_bridge", self)
         self.evaljs(self.js)
 # }}}
+
 
 class WebView(QWebView):  # {{{
 
@@ -94,6 +97,7 @@ class WebView(QWebView):  # {{{
             val = 0
         return val
 # }}}
+
 
 class ItemEdit(QWidget):
 

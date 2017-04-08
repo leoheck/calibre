@@ -26,8 +26,10 @@ XPath = functools.partial(_XPath, namespaces=NAMESPACES)
 
 SPLIT_POINT_ATTR = 'csp'
 
+
 def tostring(root):
     return etree.tostring(root, encoding='utf-8')
+
 
 class SplitError(ValueError):
 
@@ -37,6 +39,7 @@ class SplitError(ValueError):
             _('Could not find reasonable point at which to split: '
                 '%(path)s Sub-tree size: %(size)d KB')%dict(
                             path=path, size=size))
+
 
 class Split(object):
 
@@ -251,7 +254,7 @@ class FlowSplitter(object):
                     self.trees[i:i+1] = [before_tree, after_tree]
                     break
 
-        trees, ids = [], set([])
+        trees, ids = [], set()
         for tree in self.trees:
             root = tree.getroot()
             if self.is_page_empty(root):
@@ -264,10 +267,10 @@ class FlowSplitter(object):
                 if ids:
                     body = self.get_body(root)
                     if body is not None:
-                        for x in ids:
-                            body.insert(0, body.makeelement(XHTML('div'),
-                                id=x, style='height:0pt'))
-                ids = set([])
+                        existing_ids = frozenset(body.xpath('//*/@id'))
+                        for x in ids - existing_ids:
+                            body.insert(0, body.makeelement(XHTML('div'), id=x, style='height:0pt'))
+                ids = set()
                 trees.append(tree)
         self.trees = trees
 

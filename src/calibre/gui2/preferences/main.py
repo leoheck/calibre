@@ -11,19 +11,22 @@ from collections import OrderedDict
 
 from PyQt5.Qt import (
     Qt, QIcon, QFont, QWidget, QScrollArea, QStackedWidget, QVBoxLayout,
-    QLabel, QFrame, QToolBar, QSize, pyqtSignal, QPixmap, QDialogButtonBox,
+    QLabel, QFrame, QToolBar, QSize, pyqtSignal, QDialogButtonBox,
     QHBoxLayout, QDialog, QSizePolicy, QPainter, QTextLayout, QPointF,
     QStatusTipEvent, QApplication)
 
 from calibre.constants import __appname__, __version__, islinux
 from calibre.gui2 import (gprefs, min_available_height, available_width,
     show_restart_warning)
+from calibre.gui2.dialogs.message_box import Icon
 from calibre.gui2.preferences import init_gui, AbortCommit, get_plugin
 from calibre.customize.ui import preferences_plugins
 
 ICON_SIZE = 32
 
 # Title Bar {{{
+
+
 class Message(QWidget):
 
     def __init__(self, parent):
@@ -68,14 +71,14 @@ class Message(QWidget):
             y = (self.height() - br.height()) / 2
         self.layout.draw(p, QPointF(0, y))
 
+
 class TitleBar(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
         self.l = l = QHBoxLayout(self)
-        self.icon = i = QLabel('')
-        i.setScaledContents(True)
-        l.addWidget(i), i.setFixedSize(QSize(ICON_SIZE, ICON_SIZE))
+        self.icon = Icon(self, size=ICON_SIZE)
+        l.addWidget(self.icon)
         self.title = QLabel('')
         self.title.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         l.addWidget(self.title)
@@ -83,14 +86,12 @@ class TitleBar(QWidget):
         self.msg = la = Message(self)
         l.addWidget(la)
         self.default_message = __appname__ + ' ' + _('version') + ' ' + \
-                __version__ + ' ' + _('created by Kovid Goyal')
+                __version__ + ' ' + _('created by lala')
         self.show_plugin()
         self.show_msg()
 
     def show_plugin(self, plugin=None):
-        self.pmap = QPixmap(I('lt.png') if plugin is None else plugin.icon).scaled(ICON_SIZE, ICON_SIZE,
-                Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.icon.setPixmap(self.pmap)
+        self.icon.set_icon(QIcon(I('lt.png') if plugin is None else plugin.icon))
         self.title.setText('<h1>' + (_('Preferences') if plugin is None else plugin.gui_name))
 
     def show_msg(self, msg=None):
@@ -98,6 +99,7 @@ class TitleBar(QWidget):
         self.msg.setText(' '.join(msg.splitlines()).strip())
 
 # }}}
+
 
 class Category(QWidget):  # {{{
 
@@ -144,6 +146,7 @@ class Category(QWidget):  # {{{
         self.plugin_activated.emit(plugin)
 
 # }}}
+
 
 class Browser(QScrollArea):  # {{{
 
@@ -417,4 +420,3 @@ if __name__ == '__main__':
     p = Preferences(gui)
     p.exec_()
     gui.shutdown()
-

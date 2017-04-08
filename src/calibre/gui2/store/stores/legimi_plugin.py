@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import (unicode_literals, division, absolute_import, print_function)
-store_version = 7  # Needed for dynamic plugin loading
+store_version = 8  # Needed for dynamic plugin loading
 
 __license__ = 'GPL 3'
 __copyright__ = '2011-2016, Tomasz Długosz <tomek3d@gmail.com>'
@@ -22,6 +22,7 @@ from calibre.gui2.store import StorePlugin
 from calibre.gui2.store.basic_config import BasicStoreConfig
 from calibre.gui2.store.search_result import SearchResult
 from calibre.gui2.store.web_store_dialog import WebStoreDialog
+
 
 class LegimiStore(BasicStoreConfig, StorePlugin):
 
@@ -60,7 +61,7 @@ class LegimiStore(BasicStoreConfig, StorePlugin):
                 if not id:
                     continue
 
-                cover_url = ''.join(data.xpath('.//img[1]/@src'))
+                cover_url = ''.join(data.xpath('.//span[@class="listImage imageDarkLoader"]/img/@src'))
                 title = ''.join(data.xpath('.//span[@class="bookListTitle ellipsis"]/text()'))
                 author = ''.join(data.xpath('.//span[@class="bookListAuthor ellipsis"]/text()'))
                 price = ''.join(data.xpath('.//div[@class="bookListPrice"]/span/text()'))
@@ -68,7 +69,7 @@ class LegimiStore(BasicStoreConfig, StorePlugin):
                 counter -= 1
 
                 s = SearchResult()
-                s.cover_url = 'http:' + cover_url
+                s.cover_url = cover_url
                 s.title = title.strip()
                 s.author = author.strip()
                 s.price = price

@@ -13,6 +13,7 @@ from calibre import get_proxies
 from calibre.constants import ispy3
 has_ssl_verify = hasattr(ssl, 'create_default_context') and hasattr(ssl, '_create_unverified_context')
 
+
 class HTTPError(ValueError):
 
     def __init__(self, url, code):
@@ -21,6 +22,7 @@ class HTTPError(ValueError):
         ValueError.__init__(self, msg)
         self.code = code
         self.url = url
+
 
 if ispy3:
     from urllib.parse import urlparse
@@ -154,6 +156,7 @@ else:
             self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.cert_file, ssl_version=self.calibre_ssl_version)
             getattr(ssl, 'match_hostname', match_hostname)(self.sock.getpeercert(), self.host)
 
+
 def get_https_resource_securely(
     url, cacerts='calibre-ebook-root-CA.crt', timeout=60, max_redirects=5, ssl_version=None, headers=None, get_response=False):
     '''
@@ -169,8 +172,9 @@ def get_https_resource_securely(
             ssl_version = ssl.PROTOCOL_TLSv1_2
         except AttributeError:
             ssl_version = ssl.PROTOCOL_TLSv1  # old python
+    cert_file = None
     if cacerts is not None:
-        cacerts = P(cacerts, allow_user_override=False)
+        cert_file = P(cacerts, allow_user_override=False)
     p = urlparse(url)
     if p.scheme != 'https':
         raise ValueError('URL %s scheme must be https, not %r' % (url, p.scheme))
@@ -190,7 +194,7 @@ def get_https_resource_securely(
                 # Invalid proxy, ignore
                 pass
 
-    c = HTTPSConnection(ssl_version, hostname, port, cert_file=cacerts, timeout=timeout)
+    c = HTTPSConnection(ssl_version, hostname, port, cert_file=cert_file, timeout=timeout)
     if has_proxy:
         c.set_tunnel(p.hostname, p.port)
 
@@ -215,6 +219,6 @@ def get_https_resource_securely(
             return response
         return response.read()
 
+
 if __name__ == '__main__':
     print (get_https_resource_securely('https://code.calibre-ebook.com/latest'))
-

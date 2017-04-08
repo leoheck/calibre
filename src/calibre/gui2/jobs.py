@@ -31,6 +31,7 @@ from calibre.gui2.widgets2 import Dialog
 from calibre.utils.search_query_parser import SearchQueryParser, ParseException
 from calibre.utils.icu import lower
 
+
 class AdaptSQP(SearchQueryParser):
 
     def __init__(self, *args, **kwargs):
@@ -89,14 +90,15 @@ class JobManager(QAbstractTableModel, AdaptSQP):  # {{{
     def get_tooltip(self):
         running_jobs = [j for j in self.jobs if j.run_state == j.RUNNING]
         waiting_jobs = [j for j in self.jobs if j.run_state == j.WAITING]
-        lines = [_('There are %d running jobs:')%len(running_jobs)]
+        lines = [ngettext('There is a running job:', 'There are {} running jobs:', len(running_jobs)).format(len(running_jobs))]
         for job in running_jobs:
             desc = job.description
             if not desc:
                 desc = _('Unknown job')
             p = 100. if job.is_finished else job.percent
             lines.append('%s:  %.0f%% done'%(desc, p))
-        lines.extend(['', _('There are %d waiting jobs:')%len(waiting_jobs)])
+        l = ngettext('There is a waiting job', 'There are {} waiting jobs', len(waiting_jobs)).format(len(waiting_jobs))
+        lines.extend(['', l])
         for job in waiting_jobs:
             desc = job.description
             if not desc:
@@ -189,9 +191,9 @@ class JobManager(QAbstractTableModel, AdaptSQP):  # {{{
                     if job.is_finished:
                         self.job_done.emit(len(self.unfinished_jobs()))
             if needs_reset:
-                self.layoutAboutToBeChanged.emit()
+                self.modelAboutToBeReset.emit()
                 self.jobs.sort()
-                self.layoutChanged.emit()
+                self.modelReset.emit()
             else:
                 for job in jobs:
                     idx = self.jobs.index(job)
@@ -214,11 +216,11 @@ class JobManager(QAbstractTableModel, AdaptSQP):  # {{{
                         self.server.kill_job(job)
 
     def _add_job(self, job):
-        self.layoutAboutToBeChanged.emit()
+        self.modelAboutToBeReset.emit()
         self.jobs.append(job)
         self.jobs.sort()
         self.job_added.emit(len(self.unfinished_jobs()))
-        self.layoutChanged.emit()
+        self.modelReset.emit()
 
     def done_jobs(self):
         return [j for j in self.jobs if j.is_finished]
@@ -353,6 +355,7 @@ class JobManager(QAbstractTableModel, AdaptSQP):  # {{{
 
 # }}}
 
+
 class FilterModel(QSortFilterProxyModel):  # {{{
 
     search_done = pyqtSignal(object)
@@ -389,6 +392,7 @@ class FilterModel(QSortFilterProxyModel):  # {{{
 
 # Jobs UI {{{
 
+
 class ProgressBarDelegate(QAbstractItemDelegate):  # {{{
 
     def sizeHint(self, option, index):
@@ -408,6 +412,7 @@ class ProgressBarDelegate(QAbstractItemDelegate):  # {{{
         opts.text = (_('Unavailable') if percent == 0 else '%d%%'%percent)
         QApplication.style().drawControl(QStyle.CE_ProgressBar, opts, painter)
 # }}}
+
 
 class DetailView(Dialog):  # {{{
 
@@ -454,6 +459,7 @@ class DetailView(Dialog):  # {{{
                 self.log.appendPlainText(more.decode('utf-8', 'replace'))
 # }}}
 
+
 class JobsButton(QFrame):  # {{{
 
     tray_tooltip_updated = pyqtSignal(object)
@@ -463,7 +469,8 @@ class JobsButton(QFrame):  # {{{
         if horizontal:
             size = 24
         self.pi = ProgressIndicator(self, size)
-        self._jobs = QLabel('<b>'+_('Jobs:')+' 0')
+        self._jobs = QLabel(('Jobs:') + ' 0')
+        self._jobs.setPointSize(10)
         self._jobs.mouseReleaseEvent = self.mouseReleaseEvent
         self.shortcut = 'Shift+Alt+J'
 
@@ -482,13 +489,13 @@ class JobsButton(QFrame):  # {{{
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._jobs.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.setCursor(Qt.PointingHandCursor)
-        b = _('Click to see list of jobs')
+        b = ('Click to see list of jobs')
         self.setToolTip(b + u' (%s)'%self.shortcut)
         self.action_toggle = QAction(b, parent)
         parent.addAction(self.action_toggle)
         self.action_toggle.triggered.connect(self.toggle)
         if hasattr(parent, 'keyboard'):
-            parent.keyboard.register_shortcut('toggle jobs list', _('Show/hide the Jobs List'), default_keys=(self.shortcut,), action=self.action_toggle)
+            parent.keyboard.register_shortcut('toggle jobs list', ('Show/hide the Jobs List'), default_keys=(self.shortcut,), action=self.action_toggle)
 
     def initialize(self, jobs_dialog, job_manager):
         self.jobs_dialog = jobs_dialog
@@ -555,6 +562,7 @@ class JobsButton(QFrame):  # {{{
             QCoreApplication.instance().alert(self, 5000)
 
 # }}}
+
 
 class JobsDialog(QDialog, Ui_JobsDialog):
 
@@ -686,5 +694,3 @@ class JobsDialog(QDialog, Ui_JobsDialog):
         self.proxy_model.find(query)
 
 # }}}
-
-

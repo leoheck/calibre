@@ -12,6 +12,7 @@ from PyQt5.Qt import QVBoxLayout, QDialog, QLabel, QDialogButtonBox, Qt, \
 
 from calibre.gui2 import file_icon_provider
 
+
 class Formats(QAbstractListModel):
 
     def __init__(self, fmt_count):
@@ -34,9 +35,9 @@ class Formats(QAbstractListModel):
         if role == Qt.ToolTipRole:
             fmt = self.fmts[row]
             count = self.counts[fmt]
-            return (
-                _('There are %(count)d book(s) with the %(fmt)s format')%dict(
-                    count=count, fmt=fmt.upper()))
+            return ngettext('There is one book with the {fmt} format',
+                            'There are {count} books with the {fmt} format', count).format(
+                                count=count, fmt=fmt.upper())
         return None
 
     def flags(self, index):
@@ -44,6 +45,7 @@ class Formats(QAbstractListModel):
 
     def fmt(self, idx):
         return self.fmts[idx.row()]
+
 
 class SelectFormats(QDialog):
 

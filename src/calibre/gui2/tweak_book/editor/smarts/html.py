@@ -8,6 +8,7 @@ __copyright__ = '2014, Kovid Goyal <kovid at kovidgoyal.net>'
 
 import sys, re
 from operator import itemgetter
+from itertools import chain
 
 from cssutils import parseStyle
 from PyQt5.Qt import QTextEdit, Qt, QTextCursor
@@ -26,6 +27,7 @@ from calibre.utils.icu import utf16_length
 get_offset = itemgetter(0)
 PARAGRAPH_SEPARATOR = '\u2029'
 
+
 class Tag(object):
 
     def __init__(self, start_block, tag_start, end_block, tag_end, self_closing=False):
@@ -42,6 +44,7 @@ class Tag(object):
             self.name, self.start_block.blockNumber(), self.start_offset, self.end_block.blockNumber(), self.end_offset, self.self_closing)
     __str__ = __repr__
 
+
 def next_tag_boundary(block, offset, forward=True, max_lines=10000):
     while block.isValid() and max_lines > 0:
         ud = block.userData()
@@ -57,6 +60,7 @@ def next_tag_boundary(block, offset, forward=True, max_lines=10000):
         max_lines -= 1
     return None, None
 
+
 def next_attr_boundary(block, offset, forward=True):
     while block.isValid():
         ud = block.userData()
@@ -70,6 +74,7 @@ def next_attr_boundary(block, offset, forward=True):
         block = block.next() if forward else block.previous()
         offset = -1 if forward else sys.maxint
     return None, None
+
 
 def find_closest_containing_tag(block, offset, max_tags=sys.maxint):
     ''' Find the closest containing tag. To find it, we search for the first
@@ -113,6 +118,7 @@ def find_closest_containing_tag(block, offset, max_tags=sys.maxint):
         max_tags -= 1
     return None  # Could not find a containing tag
 
+
 def find_tag_definition(block, offset):
     ''' Return the <tag | > definition, if any that (block, offset) is inside. '''
     block, boundary = next_tag_boundary(block, offset, forward=False)
@@ -125,6 +131,7 @@ def find_tag_definition(block, offset):
         tag = tag_start.prefix + ':' + tag
     return tag, closing
 
+
 def find_containing_attribute(block, offset):
     block, boundary = next_attr_boundary(block, offset, forward=False)
     if block is None:
@@ -135,6 +142,7 @@ def find_containing_attribute(block, offset):
     if block is not None and boundary.type == ATTR_NAME:
         return boundary.data
     return None
+
 
 def find_attribute_in_tag(block, offset, attr_name):
     ' Return the start of the attribute value as block, offset or None, None if attribute not found '
@@ -159,6 +167,7 @@ def find_attribute_in_tag(block, offset, attr_name):
                 found_attr = True
             current_offset += 1
 
+
 def find_end_of_attribute(block, offset):
     ' Find the end of an attribute that occurs somewhere after the position specified by (block, offset) '
     block, boundary = next_attr_boundary(block, offset)
@@ -167,6 +176,7 @@ def find_end_of_attribute(block, offset):
     if boundary.type is not ATTR_VALUE or boundary.data is not ATTR_END:
         return None, None
     return block, boundary.offset
+
 
 def find_closing_tag(tag, max_tags=sys.maxint):
     ''' Find the closing tag corresponding to the specified tag. To find it we
@@ -198,10 +208,12 @@ def find_closing_tag(tag, max_tags=sys.maxint):
         max_tags -= 1
     return None
 
+
 def select_tag(cursor, tag):
     cursor.setPosition(tag.start_block.position() + tag.start_offset)
     cursor.setPosition(tag.end_block.position() + tag.end_offset + 1, cursor.KeepAnchor)
     return unicode(cursor.selectedText()).replace(PARAGRAPH_SEPARATOR, '\n').rstrip('\0')
+
 
 def rename_tag(cursor, opening_tag, closing_tag, new_name, insert=False):
     cursor.beginEditBlock()
@@ -218,6 +230,7 @@ def rename_tag(cursor, opening_tag, closing_tag, new_name, insert=False):
         text = re.sub(r'^<\s*[a-zA-Z0-9]+', '<%s' % new_name, text)
     cursor.insertText(text)
     cursor.endEditBlock()
+
 
 def ensure_not_within_tag_definition(cursor, forward=True):
     ''' Ensure the cursor is not inside a tag definition <>. Returns True iff the cursor was moved. '''
@@ -238,11 +251,13 @@ def ensure_not_within_tag_definition(cursor, forward=True):
 
     return False
 
+
 BLOCK_TAG_NAMES = frozenset((
     'address', 'article', 'aside', 'blockquote', 'center', 'dir', 'fieldset',
     'isindex', 'menu', 'noframes', 'hgroup', 'noscript', 'pre', 'section',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'p', 'div', 'dd', 'dl', 'ul',
     'ol', 'li', 'body', 'td', 'th'))
+
 
 def find_closest_containing_block_tag(block, offset, block_tag_names=BLOCK_TAG_NAMES):
     while True:
@@ -253,6 +268,7 @@ def find_closest_containing_block_tag(block, offset, block_tag_names=BLOCK_TAG_N
             return tag
         block, offset = tag.start_block, tag.start_offset
 
+
 def set_style_property(tag, property_name, value, editor):
     '''
     Set a style property, i.e. a CSS property inside the style attribute of the tag.
@@ -260,6 +276,7 @@ def set_style_property(tag, property_name, value, editor):
     '''
     block, offset = find_attribute_in_tag(tag.start_block, tag.start_offset + 1, 'style')
     c = editor.textCursor()
+
     def css(d):
         return d.cssText.replace('\n', ' ')
     if block is None or offset is None:
@@ -279,7 +296,9 @@ def set_style_property(tag, property_name, value, editor):
         d.setProperty(property_name, value)
         c.insertText('"%s"' % css(d))
 
+
 entity_pat = re.compile(r'&(#{0,1}[a-zA-Z0-9]{1,8});$')
+
 
 class Smarts(NullSmarts):
 
@@ -417,7 +436,7 @@ class Smarts(NullSmarts):
 
     def cursor_position_with_sourceline(self, cursor, for_position_sync=True, use_matched_tag=True):
         ''' Return the tag just before the current cursor as a source line
-        number and a list of tags defined on that line upto and including the
+        number and a list of tags defined on that line up to and including the
         containing tag. If ``for_position_sync`` is False then the tag
         *containing* the cursor is returned instead of the tag just before the
         cursor. Note that finding the containing tag is expensive, so
@@ -682,8 +701,19 @@ class Smarts(NullSmarts):
         c.setPosition(cstart)
         block = c.block()
         in_text = find_tag_definition(block, 0)[0] is None
+        if in_text:
+            # Check if we are in comment/PI/etc.
+            pb = block.previous()
+            while pb.isValid():
+                boundaries = pb.userData().non_tag_structures
+                if boundaries:
+                    if boundaries[-1].is_start:
+                        in_text = False
+                    break
+                pb = pb.previous()
 
         def append(text, start):
+            text = text.replace(PARAGRAPH_SEPARATOR, '\n')
             after = start + len(text)
             if start <= cend and cstart < after:
                 extra = after - (cend + 1)
@@ -695,13 +725,13 @@ class Smarts(NullSmarts):
                 chunks.append((text, start + max(extra, 0)))
 
         while block.isValid() and block.position() <= cend:
-            boundaries = sorted(block.userData().tags, key=get_offset)
+            ud = block.userData()
+            boundaries = sorted(chain(ud.tags, ud.non_tag_structures), key=get_offset)
             if not boundaries:
                 # Add the whole line
                 if in_text:
-                    text = block.text()
-                    if text:
-                        append(text, block.position())
+                    text = block.text() + '\n'
+                    append(text, block.position())
             else:
                 start = block.position()
                 c.setPosition(start)
@@ -717,10 +747,11 @@ class Smarts(NullSmarts):
                     c.setPosition(block.position() + boundaries[-1].offset + 1)
                     c.movePosition(c.EndOfBlock, c.KeepAnchor)
                     if c.hasSelection():
-                        append(c.selectedText(), c.anchor())
+                        append(c.selectedText() + '\n', c.anchor())
             block = block.next()
         s, e = find_text_in_chunks(pat, chunks)
         return s != -1 and e != -1, s, e
+
 
 if __name__ == '__main__':  # {{{
     from calibre.gui2.tweak_book.editor.widget import launch_editor
@@ -757,6 +788,7 @@ if __name__ == '__main__':  # {{{
     </body>
 </html>
 '''
+
     def callback(ed):
         import regex
         ed.find_text(regex.compile('A bold word'))

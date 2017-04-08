@@ -6,7 +6,7 @@ from future_builtins import map
 from threading import Thread, Event
 
 from PyQt5.Qt import (QObject, pyqtSignal, Qt, QUrl, QDialog, QGridLayout,
-        QLabel, QCheckBox, QDialogButtonBox, QIcon, QPixmap)
+        QLabel, QCheckBox, QDialogButtonBox, QIcon)
 
 from calibre.constants import (__appname__, __version__, iswindows, isosx,
         isportable, is64bit, numeric_version)
@@ -20,12 +20,14 @@ URL = 'https://code.calibre-ebook.com/latest'
 # URL = 'http://localhost:8000/latest'
 NO_CALIBRE_UPDATE = (0, 0, 0)
 
+
 def get_download_url():
     which = ('portable' if isportable else 'windows' if iswindows
             else 'osx' if isosx else 'linux')
     if which == 'windows' and is64bit:
         which += '64'
     return 'https://calibre-ebook.com/download_' + which
+
 
 def get_newest_version():
     try:
@@ -58,9 +60,11 @@ def get_newest_version():
         ans = tuple(map(int, (m.group(1), m.group(2), m.group(3))))
     return ans
 
+
 class Signal(QObject):
 
     update_found = pyqtSignal(object, object)
+
 
 class CheckForUpdates(Thread):
 
@@ -95,6 +99,7 @@ class CheckForUpdates(Thread):
     def shutdown(self):
         self.shutdown_event.set()
 
+
 class UpdateNotification(QDialog):
 
     def __init__(self, calibre_version, plugin_updates, parent=None):
@@ -105,8 +110,7 @@ class UpdateNotification(QDialog):
         self.setLayout(self.l)
         self.logo = QLabel()
         self.logo.setMaximumWidth(110)
-        self.logo.setPixmap(QPixmap(I('lt.png')).scaled(100, 100,
-            Qt.IgnoreAspectRatio, Qt.SmoothTransformation))
+        self.logo.setPixmap(QIcon(I('lt.png')).pixmap(100, 100))
         ver = calibre_version
         if ver.endswith('.0'):
             ver = ver[:-2]
@@ -155,6 +159,7 @@ class UpdateNotification(QDialog):
 
         QDialog.accept(self)
 
+
 class UpdateMixin(object):
 
     def __init__(self, *args, **kw):
@@ -185,7 +190,7 @@ class UpdateMixin(object):
         if has_calibre_update:
             plt = u''
             if has_plugin_updates:
-                plt = _(' (%d plugin updates)')%number_of_plugin_updates
+                plt = ngettext(' (one plugin update)', ' ({} plugin updates)', number_of_plugin_updates).format(number_of_plugin_updates)
             msg = (u'<span style="color:green; font-weight: bold">%s: '
                     u'<a href="update:%s">%s%s</a></span>') % (
                         _('Update found'), version_url, calibre_version, plt)
@@ -221,7 +226,8 @@ class UpdateMixin(object):
             plugin.qaction.setText(_('Plugin Updates')+'*')
             plugin.qaction.setIcon(QIcon(I('plugins/plugin_updater_updates.png')))
             plugin.qaction.setToolTip(
-                _('There are %d plugin updates available')%number_of_updates)
+                ngettext('A plugin update is available',
+                         'There are {} plugin updates available', number_of_updates).format(number_of_updates))
         else:
             plugin.qaction.setText(_('Plugin Updates'))
             plugin.qaction.setIcon(QIcon(I('plugins/plugin_updater.png')))

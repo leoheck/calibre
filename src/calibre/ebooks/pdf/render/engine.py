@@ -25,9 +25,11 @@ Point = namedtuple('Point', 'x y')
 ColorState = namedtuple('ColorState', 'color opacity do')
 GlyphInfo = namedtuple('GlyphInfo', 'name size stretch positions indices')
 
+
 def repr_transform(t):
     vals = map(fmtnum, (t.m11(), t.m12(), t.m21(), t.m22(), t.dx(), t.dy()))
     return '[%s]'%' '.join(vals)
+
 
 def store_error(func):
 
@@ -41,11 +43,13 @@ def store_error(func):
 
     return errh
 
+
 class Font(FontMetrics):
 
     def __init__(self, sfnt):
         FontMetrics.__init__(self, sfnt)
         self.glyph_map = {}
+
 
 class PdfEngine(QPaintEngine):
 
@@ -272,6 +276,7 @@ class PdfEngine(QPaintEngine):
             try:
                 self.fonts[gi.name] = metrics = self.create_sfnt(text_item)
             except UnsupportedFont:
+                self.debug('Failed to load font: %s, drawing text as outlines...' % names)
                 return super(PdfEngine, self).drawTextItem(point, text_item)
         for glyph_id in gi.indices:
             try:
@@ -335,6 +340,7 @@ class PdfEngine(QPaintEngine):
             link[1] = pos['column'] + start_page
             link.append((llx, lly, urx, ury))
         self.pdf.links.add(current_item, start_page, links, anchors)
+
 
 class PdfDevice(QPaintDevice):  # {{{
 

@@ -32,6 +32,7 @@ from calibre import guess_type, xml_replace_entities
 
 __all__ = ['OEBReader']
 
+
 class OEBReader(object):
     """Read an OEBPS 1.x or OPF/OPS 2.0 file collection."""
 
@@ -711,6 +712,7 @@ def main(argv=sys.argv):
         for name, doc in oeb.to_opf2(page_map=True).values():
             print etree.tostring(doc, pretty_print=True)
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

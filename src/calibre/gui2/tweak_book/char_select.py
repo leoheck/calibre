@@ -35,6 +35,7 @@ non_printing = {
 
 # Searching {{{
 
+
 def load_search_index():
     topchar = 0x10ffff
     ver = (1, topchar, icu_unicode_version or unicodedata.unidata_version)  # Increment this when you make any changes to the index
@@ -62,7 +63,9 @@ def load_search_index():
         del name_map['calibre-nm-version:']
     return name_map
 
+
 _index = None
+
 
 def search_for_chars(query, and_tokens=False):
     global _index
@@ -83,6 +86,7 @@ def search_for_chars(query, and_tokens=False):
                 ans |= chars
     return sorted(ans)
 # }}}
+
 
 class CategoryModel(QAbstractItemModel):
 
@@ -467,6 +471,7 @@ class CategoryModel(QAbstractItemModel):
             category = subcategory = _('Unknown')
         return category, subcategory, (character_name_from_code(char_code) or _('Unknown'))
 
+
 class CategoryDelegate(QStyledItemDelegate):
 
     def __init__(self, parent=None):
@@ -477,6 +482,7 @@ class CategoryDelegate(QStyledItemDelegate):
         if not index.parent().isValid():
             ans += QSize(0, 6)
         return ans
+
 
 class CategoryView(QTreeView):
 
@@ -518,6 +524,7 @@ class CategoryView(QTreeView):
             self._delegate = CategoryDelegate(self)
             self.setItemDelegate(self._delegate)
             self.initialized = True
+
 
 class CharModel(QAbstractListModel):
 
@@ -568,6 +575,7 @@ class CharModel(QAbstractListModel):
         tprefs['charmap_favorites'] = list(self.chars)
         return True
 
+
 class CharDelegate(QStyledItemDelegate):
 
     def __init__(self, parent=None):
@@ -605,6 +613,7 @@ class CharDelegate(QStyledItemDelegate):
         painter.setPen(QPen(Qt.DashLine))
         painter.drawRect(option.rect.adjusted(1, 1, -1, -1))
 
+
 class CharView(QListView):
 
     show_name = pyqtSignal(object)
@@ -616,6 +625,7 @@ class CharView(QListView):
         self._model = CharModel(self)
         self.setModel(self._model)
         self.delegate = CharDelegate(self)
+        self.setResizeMode(self.Adjust)
         self.setItemDelegate(self.delegate)
         self.setFlow(self.LeftToRight)
         self.setWrapping(True)
@@ -718,13 +728,14 @@ class CharView(QListView):
             self.model().chars.remove(char_code)
             self.model().endResetModel()
 
+
 class CharSelect(Dialog):
 
     def __init__(self, parent=None):
         self.initialized = False
         Dialog.__init__(self, _('Insert character'), 'charmap_dialog', parent)
         self.setWindowIcon(QIcon(I('character-set.png')))
-        self.focus_widget = None
+        self.setFocusProxy(parent)
 
     def setup_ui(self):
         self.l = l = QGridLayout(self)
@@ -738,6 +749,7 @@ class CharSelect(Dialog):
         b.setDefault(True)
 
         self.splitter = s = QSplitter(self)
+        s.setFocusPolicy(Qt.NoFocus)
         s.setChildrenCollapsible(False)
 
         self.search = h = HistoryLineEdit2(self)
@@ -748,17 +760,21 @@ class CharSelect(Dialog):
         h.initialize('charmap_search')
         h.setPlaceholderText(_('Search by name, nickname or character code'))
         self.search_button = b = QPushButton(_('&Search'))
+        b.setFocusPolicy(Qt.NoFocus)
         h.returnPressed.connect(self.do_search)
         b.clicked.connect(self.do_search)
         self.clear_button = cb = QToolButton(self)
         cb.setIcon(QIcon(I('clear_left.png')))
+        cb.setFocusPolicy(Qt.NoFocus)
         cb.setText(_('Clear search'))
         cb.clicked.connect(self.clear_search)
         l.addWidget(h), l.addWidget(b, 0, 1), l.addWidget(cb, 0, 2)
 
         self.category_view = CategoryView(self)
+        self.category_view.setFocusPolicy(Qt.NoFocus)
         l.addWidget(s, 1, 0, 1, 3)
         self.char_view = CharView(self)
+        self.char_view.setFocusPolicy(Qt.NoFocus)
         self.rearrange_button.toggled[bool].connect(self.set_allow_drag_and_drop)
         self.category_view.category_selected.connect(self.show_chars)
         self.char_view.show_name.connect(self.show_char_info)
@@ -838,8 +854,10 @@ class CharSelect(Dialog):
         if hasattr(w, 'no_popup'):
             w.no_popup = oval
 
+
 if __name__ == '__main__':
-    app = QApplication([])
+    from calibre.gui2 import Application
+    app = Application([])
     w = CharSelect()
     w.initialize()
     w.show()

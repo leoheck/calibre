@@ -3,13 +3,14 @@ __license__ = 'GPL 3'
 __copyright__ = '2009, Kovid Goyal <kovid@kovidgoyal.net>'
 __docformat__ = 'restructuredtext en'
 
-import os, re
+import os, re, posixpath
 from itertools import cycle
 
 from calibre.customize.conversion import InputFormatPlugin, OptionRecommendation
 
 ADOBE_OBFUSCATION =  'http://ns.adobe.com/pdf/enc#RC'
 IDPF_OBFUSCATION = 'http://www.idpf.org/2008/embedding'
+
 
 def decrypt_font_data(key, data, algorithm):
     is_adobe = algorithm == ADOBE_OBFUSCATION
@@ -19,10 +20,12 @@ def decrypt_font_data(key, data, algorithm):
     decrypt = bytes(bytearray(x^key.next() for x in crypt))
     return decrypt + data[crypt_len:]
 
+
 def decrypt_font(key, path, algorithm):
     with open(path, 'r+b') as f:
         data = decrypt_font_data(key, f.read(), algorithm)
         f.seek(0), f.truncate(), f.write(data)
+
 
 class EPUBInput(InputFormatPlugin):
 
@@ -125,6 +128,7 @@ class EPUBInput(InputFormatPlugin):
         means, at most one entry with type="cover" that points to a raster
         cover and at most one entry with type="titlepage" that points to an
         HTML titlepage. '''
+        from calibre.ebooks.oeb.base import OPF
         removed = None
         from lxml import etree
         guide_cover, guide_elem = None, None
@@ -133,6 +137,16 @@ class EPUBInput(InputFormatPlugin):
                 guide_cover = guide_elem.get('href', '').partition('#')[0]
                 break
         if not guide_cover:
+            raster_cover = opf.raster_cover
+            if raster_cover:
+                if guide_elem is None:
+                    g = opf.root.makeelement(OPF('guide'))
+                    opf.root.append(g)
+                else:
+                    g = guide_elem.getparent()
+                guide_cover = raster_cover
+                guide_elem = g.makeelement(OPF('reference'), attrib={'href':raster_cover, 'type':'cover'})
+                g.append(guide_elem)
             return
         spine = list(opf.iterspine())
         if not spine:
@@ -171,8 +185,6 @@ class EPUBInput(InputFormatPlugin):
         # entry will be used by the epub output plugin, the raster cover entry
         # by other output plugins.
 
-        from calibre.ebooks.oeb.base import OPF
-
         # Search for a raster cover identified in the OPF
         raster_cover = opf.raster_cover
 
@@ -198,6 +210,7 @@ class EPUBInput(InputFormatPlugin):
 
     def find_opf(self):
         from lxml import etree
+
         def attr(n, attr):
             for k, v in n.attrib.items():
                 if k.endswith(attr):
@@ -261,10 +274,14 @@ class EPUBInput(InputFormatPlugin):
 
         if len(parts) > 1 and parts[0]:
             delta = '/'.join(parts[:-1])+'/'
+
+            def normpath(x):
+                return posixpath.normpath(delta + elem.get('href'))
+
             for elem in opf.itermanifest():
-                elem.set('href', delta+elem.get('href'))
+                elem.set('href', normpath(elem.get('href')))
             for elem in opf.iterguide():
-                elem.set('href', delta+elem.get('href'))
+                elem.set('href', normpath(elem.get('href')))
 
         f = self.rationalize_cover3 if opf.package_version >= 3.0 else self.rationalize_cover2
         self.removed_cover = f(opf, log)
@@ -346,6 +363,8 @@ class EPUBInput(InputFormatPlugin):
                 if ol is not None:
                     process_nav_node(ol, navmap)
                     break
+        else:
+            return
 
         with NamedTemporaryFile(suffix='.ncx', dir=os.path.dirname(nav_path), delete=False) as f:
             f.write(etree.tostring(ncx, encoding='utf-8'))
@@ -364,5 +383,3 @@ class EPUBInput(InputFormatPlugin):
             spine = {x.href for x in oeb.spine}
             if (cover_toc_item is not None and cover_toc_item not in spine):
                 oeb.toc.item_that_refers_to_cover = cover_toc_item
-
-

@@ -50,15 +50,20 @@ import threading
 import Queue
 
 # exceptions
+
+
 class NoResultsPending(Exception):
     """All work requests have been processed."""
     pass
+
 
 class NoWorkersAvailable(Exception):
     """No worker threads available to process remaining requests."""
     pass
 
 # classes
+
+
 class WorkerThread(threading.Thread):
     """Background thread connected to the requests/results queues.
 
@@ -118,7 +123,7 @@ class WorkRequest:
       callback=None, exc_callback=None):
         """Create a work request for a callable and attach callbacks.
 
-        A work request consists of the a callable to be executed by a
+        A work request consists of the callable to be executed by a
         worker thread, a list of positional arguments, a dictionary
         of keyword arguments.
 
@@ -231,6 +236,8 @@ class ThreadPool:
                 break
 
 # helper functions
+
+
 def makeRequests(callable, args_list, callback=None, exc_callback=None):
     """Create several work requests for same callable with different arguments.
 
@@ -263,6 +270,7 @@ def makeRequests(callable, args_list, callback=None, exc_callback=None):
 ################
 # USAGE EXAMPLE
 ################
+
 
 if __name__ == '__main__':
     import random

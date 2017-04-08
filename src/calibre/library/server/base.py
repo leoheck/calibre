@@ -49,7 +49,7 @@ class DispatchController(object):  # {{{
             route = self.prefix + route
         if isinstance(route, unicode):
             # Apparently the routes package chokes on unicode routes, see
-            # http://www.mobileread.com/forums/showthread.php?t=235366
+            # https://www.mobileread.com/forums/showthread.php?t=235366
             route = route.encode('utf-8')
         elif self.prefix:
             self.dispatcher.connect(name+'prefix_extra', self.prefix, self,
@@ -74,6 +74,7 @@ class DispatchController(object):  # {{{
         return self.funcs[num]
 
 # }}}
+
 
 class BonJour(SimplePlugin):  # {{{
 
@@ -115,9 +116,11 @@ class BonJour(SimplePlugin):  # {{{
 
     stop.priority = 10
 
+
 cherrypy.engine.bonjour = BonJour(cherrypy.engine)
 
 # }}}
+
 
 class LibraryServer(ContentServer, MobileServer, XMLServer, OPDSServer, Cache,
         BrowseServer, AjaxServer):

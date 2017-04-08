@@ -13,8 +13,8 @@ import os
 import cStringIO
 
 from calibre import fsync
-from calibre.constants import isosx
 from calibre.devices.usbms.driver import USBMS
+
 
 class NOOK(USBMS):
 
@@ -22,7 +22,7 @@ class NOOK(USBMS):
     gui_name       = _('The Nook')
     description    = _('Communicate with the Nook eBook reader.')
     author         = 'John Schember'
-    icon           = I('devices/nook.jpg')
+    icon           = I('devices/nook.png')
     supported_platforms = ['windows', 'linux', 'osx']
 
     # Ordered list of supported formats
@@ -82,15 +82,16 @@ class NOOK(USBMS):
     def sanitize_path_components(self, components):
         return [x.replace('#', '_') for x in components]
 
+
 class NOOK_COLOR(NOOK):
     name           = 'Nook Color Device Interface'
     description    = _('Communicate with the Nook Color, TSR, Glowlight and Tablet eBook readers.')
 
-    PRODUCT_ID  = [0x002, 0x003, 0x004,
-                   # Glowlight from 2013
-                   0x007]
-    if isosx:
-        PRODUCT_ID.append(0x005)  # Nook HD+
+    PRODUCT_ID  = [
+        0x002, 0x003, 0x004,
+        0x005,  # Nook HD+
+        0x007,  # Glowlight from 2013
+    ]
     BCD         = [0x216]
 
     WINDOWS_MAIN_MEM = WINDOWS_CARD_A_MEM = ['EBOOK_DISK', 'NOOK_TABLET',
@@ -113,4 +114,3 @@ class NOOK_COLOR(NOOK):
         path = os.path.join(path, subdir)
         return USBMS.create_upload_path(self, path, mdata, fname,
                 create_dirs=create_dirs)
-

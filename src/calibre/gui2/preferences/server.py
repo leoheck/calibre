@@ -19,6 +19,7 @@ from calibre.gui2 import error_dialog, config, open_url, warning_dialog, \
 from calibre import as_unicode
 from calibre.utils.icu import sort_key
 
+
 class ConfigWidget(ConfigWidgetBase, Ui_Form):
 
     def genesis(self, gui):
@@ -82,7 +83,7 @@ class ConfigWidget(ConfigWidgetBase, Ui_Form):
     def stop_server(self):
         self.gui.content_server.threaded_exit()
         self.stopping_msg = info_dialog(self, _('Stopping'),
-                _('Stopping server, this could take upto a minute, please wait...'),
+                _('Stopping server, this could take up to a minute, please wait...'),
                 show_copy_button=False)
         QTimer.singleShot(500, self.check_exited)
         self.stopping_msg.exec_()

@@ -17,6 +17,7 @@ from calibre import fit_image
 from calibre.gui2.book_details import render_html, details_context_menu_event, css
 from calibre.gui2.widgets import CoverView
 
+
 class Details(QWebView):
 
     def __init__(self, book_info, parent=None):
@@ -28,6 +29,7 @@ class Details(QWebView):
 
     def contextMenuEvent(self, ev):
         details_context_menu_event(self, ev, self.book_info)
+
 
 class BookInfo(QDialog):
 
@@ -166,8 +168,13 @@ class BookInfo(QDialog):
                     pixmap.height(), self.cover.size().width()-10,
                     self.cover.size().height()-10)
             if scaled:
-                pixmap = pixmap.scaled(new_width, new_height,
+                try:
+                    dpr = self.devicePixelRatioF()
+                except AttributeError:
+                    dpr = self.devicePixelRatio()
+                pixmap = pixmap.scaled(int(dpr * new_width), int(dpr * new_height),
                         Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                pixmap.setDevicePixelRatio(dpr)
         self.cover.set_pixmap(pixmap)
         self.update_cover_tooltip()
 
@@ -198,6 +205,11 @@ class BookInfo(QDialog):
         self.current_row = row
         self.setWindowTitle(mi.title)
         self.cover_pixmap = QPixmap.fromImage(mi.cover_data[1])
+        try:
+            dpr = self.devicePixelRatioF()
+        except AttributeError:
+            dpr = self.devicePixelRatio()
+        self.cover_pixmap.setDevicePixelRatio(dpr)
         self.resize_cover()
         html = render_html(mi, self.css, True, self, all_fields=True)
         self.details.setHtml(html)

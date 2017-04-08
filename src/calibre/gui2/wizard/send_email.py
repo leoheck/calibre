@@ -21,6 +21,7 @@ from calibre.gui2.wizard.send_email_ui import Ui_Form
 from calibre.utils.smtp import config as smtp_prefs
 from calibre.gui2 import error_dialog, question_dialog
 
+
 class TestEmail(QDialog):
 
     test_done = pyqtSignal(object)
@@ -74,6 +75,7 @@ class TestEmail(QDialog):
             self.test_button.setEnabled(True)
             self.log.setPlainText(txt)
 
+
 class RelaySetup(QDialog):
 
     def __init__(self, service, parent):
@@ -87,7 +89,7 @@ class RelaySetup(QDialog):
         self.tl = QLabel(('<p>'+_('Setup sending email using') +
                 ' <b>{name}</b><p>' +
             _('If you don\'t have an account, you can sign up for a free {name} email '
-            'account at <a href="http://{url}">http://{url}</a>. {extra}')).format(
+            'account at <a href="https://{url}">https://{url}</a>. {extra}')).format(
                 **service))
         l.addWidget(self.tl, 0, 0, 3, 0)
         self.tl.setWordWrap(True)
@@ -274,11 +276,6 @@ class SendEmail(QWidget, Ui_Form):
                             _('You must either set both the username <b>and</b> password for '
                             'the mail server or no username and no password at all.')).exec_()
                 return False
-            if not username and not password and enc_method != 'NONE':
-                error_dialog(self, _('Bad configuration'),
-                            _('Please enter a username and password or set'
-                               ' encryption to None ')).exec_()
-                return False
             if not (username and password) and not question_dialog(self,
                     _('Are you sure?'),
                 _('No username and password set for mailserver. Most '
@@ -292,6 +289,3 @@ class SendEmail(QWidget, Ui_Form):
         conf.set('relay_password', hexlify(password.encode('utf-8')))
         conf.set('encryption', enc_method)
         return True
-
-
-

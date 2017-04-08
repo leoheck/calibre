@@ -18,6 +18,7 @@ from calibre.utils.winreg.lib import Key, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 
 # See https://msdn.microsoft.com/en-us/library/windows/desktop/cc144154(v=vs.85).aspx
 
+
 def default_programs():
     return {
         'calibre.exe': {
@@ -45,11 +46,12 @@ def default_programs():
         },
     }
 
+
 def extensions(basename):
     if basename == 'calibre.exe':
         from calibre.ebooks import BOOK_EXTENSIONS
         # We remove rar and zip as they interfere with 7-zip associations
-        # http://www.mobileread.com/forums/showthread.php?t=256459
+        # https://www.mobileread.com/forums/showthread.php?t=256459
         return set(BOOK_EXTENSIONS) - {'rar', 'zip'}
     if basename == 'ebook-viewer.exe':
         from calibre.customize.ui import all_input_formats
@@ -59,8 +61,10 @@ def extensions(basename):
         from calibre.ebooks.oeb.polish.import_book import IMPORTABLE
         return SUPPORTED | IMPORTABLE
 
+
 class NotAllowed(ValueError):
     pass
+
 
 def check_allowed():
     if not isfrozen:
@@ -71,6 +75,7 @@ def check_allowed():
         raise NotAllowed('Not allowed to create associations for windows versions older than Windows 8')
     if b'CALIBRE_NO_DEFAULT_PROGRAMS' in os.environ:
         raise NotAllowed('Disabled by the CALIBRE_NO_DEFAULT_PROGRAMS environment variable')
+
 
 def create_prog_id(ext, prog_id, ext_map, exe):
     with Key(r'Software\Classes\%s' % prog_id) as key:
@@ -85,11 +90,14 @@ def create_prog_id(ext, prog_id, ext_map, exe):
     with Key(r'Software\Classes\.%s\OpenWithProgIDs' % ext) as key:
         key.set(prog_id)
 
+
 def progid_name(assoc_name, ext):
     return '%s.AssocFile.%s' % (assoc_name, ext.upper())
 
+
 def cap_path(data):
     return r'Software\calibre\%s\Capabilities' % data['capability_name']
+
 
 def register():
     base = os.path.dirname(sys.executable)
@@ -122,6 +130,7 @@ def register():
 
     from win32com.shell import shell, shellcon
     shell.SHChangeNotify(shellcon.SHCNE_ASSOCCHANGED, shellcon.SHCNF_DWORD | shellcon.SHCNF_FLUSH, 0, 0)
+
 
 def unregister():
     for program, data in default_programs().iteritems():
@@ -181,6 +190,7 @@ class Register(Thread):
         # application very quickly
         self.join(4.0)
 
+
 def get_prog_id_map(base, key_path):
     desc, ans = None, {}
     try:
@@ -197,6 +207,7 @@ def get_prog_id_map(base, key_path):
             ans[ext[1:].lower()] = prog_id
     return desc, ans
 
+
 def get_open_data(base, prog_id):
     try:
         k = Key(open_at=r'Software\Classes\%s' % prog_id, root=base)
@@ -211,12 +222,14 @@ def get_open_data(base, prog_id):
                 cmd = ' '.join(parts[:-1]) + ' "%1"'
         return cmd, k.get(sub_key='DefaultIcon'), k.get_mui_string('FriendlyTypeName') or k.get()
 
+
 CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW
 CommandLineToArgvW.arg_types = [LPCWSTR, ctypes.POINTER(ctypes.c_int)]
 CommandLineToArgvW.restype = ctypes.POINTER(LPCWSTR)
 LocalFree = ctypes.windll.kernel32.LocalFree
 LocalFree.res_type = HLOCAL
 LocalFree.arg_types = [HLOCAL]
+
 
 def split_commandline(commandline):
     # CommandLineToArgvW returns path to executable if called with empty string.
@@ -231,6 +244,7 @@ def split_commandline(commandline):
     LocalFree(result_pointer)
     return result
 
+
 def friendly_app_name(prog_id=None, exe=None):
     try:
         from win32com.shell import shell, shellcon
@@ -240,6 +254,7 @@ def friendly_app_name(prog_id=None, exe=None):
     except Exception:
         import traceback
         traceback.print_exc()
+
 
 def find_programs(extensions):
     extensions = frozenset(extensions)
@@ -294,6 +309,7 @@ def find_programs(extensions):
                     if name:
                         ans.append({'name':name, 'cmdline':cmdline, 'icon_resource':icon_resource})
     return ans
+
 
 if __name__ == '__main__':
     from pprint import pprint

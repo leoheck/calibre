@@ -9,6 +9,7 @@ __docformat__ = 'restructuredtext en'
 from calibre.customize.conversion import (OutputFormatPlugin,
         OptionRecommendation)
 
+
 def remove_html_cover(oeb, log):
     from calibre.ebooks.oeb.base import OEB_DOCS
 
@@ -27,11 +28,13 @@ def remove_html_cover(oeb, log):
         if item.media_type in OEB_DOCS:
             oeb.manifest.remove(item)
 
+
 def extract_mobi(output_path, opts):
     if opts.extract_to is not None:
         from calibre.ebooks.mobi.debug.main import inspect_mobi
         ddir = opts.extract_to
         inspect_mobi(output_path, ddir=ddir)
+
 
 class MOBIOutput(OutputFormatPlugin):
 
@@ -99,7 +102,8 @@ class MOBIOutput(OutputFormatPlugin):
                 'devices. However, by changing this setting, you can tell '
                 'calibre to generate MOBI files that contain both MOBI 6 and '
                 'the new KF8 format, or only the new KF8 format. KF8 has '
-                'more features than MOBI 6, but only works with newer Kindles.')),
+                'more features than MOBI 6, but only works with newer Kindles. '
+                'Allowed values: {}').format('old, both, new')),
 
     ])
 
@@ -261,6 +265,7 @@ class MOBIOutput(OutputFormatPlugin):
                 for td in cols:
                     td.tag = XHTML('span' if cols else 'div')
 
+
 class AZW3Output(OutputFormatPlugin):
 
     name = 'AZW3 Output'
@@ -327,5 +332,3 @@ class AZW3Output(OutputFormatPlugin):
     def specialize_css_for_output(self, log, opts, item, stylizer):
         from calibre.ebooks.mobi.writer8.cleanup import CSSCleanup
         CSSCleanup(log, opts)(item, stylizer)
-
-

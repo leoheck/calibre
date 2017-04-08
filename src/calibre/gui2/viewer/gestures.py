@@ -29,6 +29,7 @@ Tap, TapAndHold, Pinch, Swipe, SwipeAndHold = 'Tap', 'TapAndHold', 'Pinch', 'Swi
 Left, Right, Up, Down = 'Left', 'Right', 'Up', 'Down'
 In, Out = 'In', 'Out'
 
+
 class Help(QDialog):  # {{{
 
     def __init__(self, parent=None):
@@ -80,6 +81,7 @@ class Help(QDialog):  # {{{
         self.resize(600, 500)
 # }}}
 
+
 class TouchPoint(object):
 
     def __init__(self, tp):
@@ -115,6 +117,7 @@ class TouchPoint(object):
         y_movement = self.current_screen_position.y() - self.previous_screen_position.y()
         return (x_movement, y_movement)
 
+
 def get_pinch(p1, p2):
     starts = [p1.start_screen_position, p2.start_screen_position]
     ends = [p1.current_screen_position, p2.current_screen_position]
@@ -127,6 +130,7 @@ def get_pinch(p1, p2):
     if min(start_length, end_length) > max(start_length, end_length) / PINCH_SQUEEZE_FACTOR:
         return None
     return In if start_length > end_length else Out
+
 
 class State(QObject):
 
@@ -291,7 +295,7 @@ class GestureHandler(QObject):
         view = self.parent()
         if not view.document.in_paged_mode:
             return
-        func = {Left:'next_page', Right: 'previous_page', Up:'goto_previous_section', Down:'goto_next_section'}[direction]
+        func = {Left:'next_page', Right: 'previous_page', Down:'goto_previous_section', Up:'goto_next_section'}[direction]
         getattr(view, func)()
 
     def handle_swiping(self, x, y):
@@ -366,6 +370,7 @@ class GestureHandler(QObject):
 
     def show_help(self):
         Help(self.parent()).exec_()
+
 
 if __name__ == '__main__':
     app = QApplication([])

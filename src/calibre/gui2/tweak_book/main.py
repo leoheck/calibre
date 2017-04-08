@@ -1,29 +1,39 @@
 #!/usr/bin/env python2
 # vim:fileencoding=utf-8
-from __future__ import (unicode_literals, division, absolute_import,
-                        print_function)
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import importlib
+import os
+import sys
+import time
+
+from PyQt5.Qt import QIcon
+
+from calibre.constants import EDITOR_APP_UID, islinux, iswindows
+from calibre.gui2 import (
+    Application, decouple, set_gui_prefs, setup_gui_option_parser
+)
+from calibre.ptempfile import reset_base_dir
+from calibre.utils.config import OptionParser
 
 __license__ = 'GPL v3'
 __copyright__ = '2013, Kovid Goyal <kovid at kovidgoyal.net>'
 
-import sys, os, importlib, time
-
-from PyQt5.Qt import QIcon
-
-from calibre.constants import islinux, iswindows
-from calibre.gui2 import Application, ORG_NAME, APP_UID, setup_gui_option_parser, decouple, set_gui_prefs
-from calibre.ptempfile import reset_base_dir
-from calibre.utils.config import OptionParser
 
 def option_parser():
-    parser =  OptionParser(_('''\
+    parser = OptionParser(
+        _(
+            '''\
 %prog [opts] [path_to_ebook] [name_of_file_inside_book ...]
 
 Launch the calibre edit book tool. You can optionally also specify the names of
 files inside the book which will be opened for editing automatically.
-'''))
+'''
+        )
+    )
     setup_gui_option_parser(parser)
     return parser
+
 
 class EventAccumulator(object):
 
@@ -33,8 +43,10 @@ class EventAccumulator(object):
     def __call__(self, ev):
         self.events.append(ev)
 
+
 def gui_main(path=None, notify=None):
     _run(['ebook-edit', path], notify=notify)
+
 
 def _run(args, notify=None):
     # Ensure we can continue to function if GUI is closed
@@ -47,8 +59,10 @@ def _run(args, notify=None):
         # launched from within calibre, as both use calibre-parallel.exe
         import ctypes
         try:
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('com.calibre-ebook.edit-book')
-        except:
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                EDITOR_APP_UID
+            )
+        except Exception:
             pass  # Only available on windows 7 and newer
 
     # The following two lines are needed to prevent circular imports causing
@@ -66,8 +80,6 @@ def _run(args, notify=None):
     app.file_event_hook = EventAccumulator()
     app.load_builtin_fonts()
     app.setWindowIcon(QIcon(I('tweak.png')))
-    Application.setOrganizationName(ORG_NAME)
-    Application.setApplicationName(APP_UID)
     main = Main(opts, notify=notify)
     main.set_exception_handler()
     main.show()
@@ -87,9 +99,10 @@ def _run(args, notify=None):
     while parse_worker.is_alive() and time.time() - st < 120:
         time.sleep(0.1)
 
+
 def main(args=sys.argv):
     _run(args)
 
+
 if __name__ == '__main__':
     main()
-

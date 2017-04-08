@@ -11,6 +11,7 @@ from gettext import GNUTranslations, NullTranslations
 
 _available_translations = None
 
+
 def available_translations():
     global _available_translations
     if _available_translations is None:
@@ -21,6 +22,7 @@ def available_translations():
             stats = {}
         _available_translations = [x for x in stats if stats[x] > 0.1]
     return _available_translations
+
 
 def get_system_locale():
     from calibre.constants import iswindows, isosx, plugins
@@ -81,8 +83,10 @@ def get_lang():
         lang = 'en'
     return lang
 
+
 def is_rtl():
     return get_lang()[:2].lower() in {'he', 'ar'}
+
 
 def get_lc_messages_path(lang):
     hlang = None
@@ -95,11 +99,14 @@ def get_lc_messages_path(lang):
                 hlang = xlang
     return hlang
 
+
 def zf_exists():
     return os.path.exists(P('localization/locales.zip',
                 allow_user_override=False))
 
+
 _lang_trans = None
+
 
 def get_all_translators():
     from zipfile import ZipFile
@@ -110,11 +117,13 @@ def get_all_translators():
                 buf = cStringIO.StringIO(zf.read(mpath + '/messages.mo'))
                 yield lang, GNUTranslations(buf)
 
+
 def get_single_translator(mpath):
     from zipfile import ZipFile
     with ZipFile(P('localization/locales.zip', allow_user_override=False), 'r') as zf:
         buf = cStringIO.StringIO(zf.read(mpath + '/messages.mo'))
         return GNUTranslations(buf)
+
 
 def get_translator(bcp_47_code):
     parts = bcp_47_code.replace('-', '_').split('_')[:2]
@@ -136,6 +145,7 @@ def get_translator(bcp_47_code):
         return found, lang, NullTranslations()
     return found, lang, get_single_translator(lang)
 
+
 lcdata = {
     u'abday': (u'Sun', u'Mon', u'Tue', u'Wed', u'Thu', u'Fri', u'Sat'),
     u'abmon': (u'Jan', u'Feb', u'Mar', u'Apr', u'May', u'Jun', u'Jul', u'Aug', u'Sep', u'Oct', u'Nov', u'Dec'),
@@ -150,6 +160,7 @@ lcdata = {
     u'thousep': u',',
     u'yesexpr': u'^[yY].*'
 }
+
 
 def load_po(path):
     from calibre.translations.msgfmt import make
@@ -214,6 +225,7 @@ def set_translators():
     from calibre.utils.config_base import prefs
     prefs.retranslate_help()
 
+
 _iso639 = None
 _extra_lang_codes = {
         'pt_BR' : _('Brazilian Portuguese'),
@@ -249,6 +261,7 @@ _extra_lang_codes = {
         'en_YE' : _('English (Yemen)'),
         'en_IE' : _('English (Ireland)'),
         'en_CN' : _('English (China)'),
+        'en_TW' : _('English (Taiwan)'),
         'en_ZA' : _('English (South Africa)'),
         'es_PY' : _('Spanish (Paraguay)'),
         'es_UY' : _('Spanish (Uruguay)'),
@@ -302,6 +315,7 @@ _lcase_map = {}
 for k in _extra_lang_codes:
     _lcase_map[k.lower()] = k
 
+
 def _load_iso639():
     global _iso639
     if _iso639 is None:
@@ -309,6 +323,7 @@ def _load_iso639():
         with open(ip, 'rb') as f:
             _iso639 = cPickle.load(f)
     return _iso639
+
 
 def get_language(lang):
     translate = _
@@ -332,6 +347,7 @@ def get_language(lang):
     except AttributeError:
         return translate(ans)
 
+
 def calibre_langcode_to_name(lc, localize=True):
     iso639 = _load_iso639()
     translate = _ if localize else lambda x: x
@@ -340,6 +356,7 @@ def calibre_langcode_to_name(lc, localize=True):
     except:
         pass
     return lc
+
 
 def canonicalize_lang(raw):
     if not raw:
@@ -367,7 +384,9 @@ def canonicalize_lang(raw):
 
     return iso639['name_map'].get(raw, None)
 
+
 _lang_map = None
+
 
 def lang_map():
     ' Return mapping of ISO 639 3 letter codes to localized language names '
@@ -377,6 +396,7 @@ def lang_map():
     if _lang_map is None:
         _lang_map = {k:translate(v) for k, v in iso639['by_3t'].iteritems()}
     return _lang_map
+
 
 def langnames_to_langcodes(names):
     '''
@@ -400,13 +420,16 @@ def langnames_to_langcodes(names):
 
     return ans
 
+
 def lang_as_iso639_1(name_or_code):
     code = canonicalize_lang(name_or_code)
     if code is not None:
         iso639 = _load_iso639()
         return iso639['3to2'].get(code, None)
 
+
 _udc = None
+
 
 def get_udc():
     global _udc
@@ -414,6 +437,7 @@ def get_udc():
         from calibre.ebooks.unihandecode import Unihandecoder
         _udc = Unihandecoder(lang=get_lang())
     return _udc
+
 
 def localize_user_manual_link(url):
     lc = lang_as_iso639_1(get_lang())

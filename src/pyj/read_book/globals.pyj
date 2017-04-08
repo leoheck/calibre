@@ -4,6 +4,7 @@ from __python__ import hash_literals
 
 from aes import GCM, random_bytes
 from encodings import hexlify
+from gettext import gettext as _, register_callback, gettext as gt
 
 _boss = None
 
@@ -13,6 +14,10 @@ def set_boss(b):
 
 def get_boss():
     return _boss
+
+def current_book():
+    return current_book.book
+current_book.book = None
 
 class Messenger:
 
@@ -34,18 +39,36 @@ messenger = Messenger()
 iframe_id = 'read-book-iframe'
 uid = 'calibre-' + hexlify(random_bytes(12))
 
-_layout_mode = 'flow'
 def current_layout_mode():
-    return _layout_mode
+    return current_layout_mode.value
+current_layout_mode.value = 'flow'
 
 def set_layout_mode(val):
-    nonlocal _layout_mode
-    _layout_mode = val
+    current_layout_mode.value = val
 
-_current_spine_item = None
 def current_spine_item():
-    return _current_spine_item
+    return current_spine_item.value
+current_spine_item.value = None
 
 def set_current_spine_item(val):
-    nonlocal _current_spine_item
-    _current_spine_item = val
+    current_spine_item.value = val
+
+def toc_anchor_map():
+    return toc_anchor_map.value
+
+def set_toc_anchor_map(val):
+    toc_anchor_map.value = val
+
+default_color_schemes = {
+    'white':{'foreground':'#000000', 'background':'#ffffff', 'name':_('White')},
+    'black':{'foreground':'#ffffff', 'background':'#000000', 'name':_('Black')},
+    'sepia-light':{'foreground':'#39322B', 'background':'#F6F3E9', 'name':_('Sepia Light')},
+    'sepia-dark': {'background':'#39322B', 'foreground':'#F6F3E9', 'name':_('Sepia Dark')},
+}
+
+register_callback(def():
+    # Ensure the color scheme names are translated
+    for key in default_color_schemes:
+        scheme = default_color_schemes[key]
+        scheme.name = gt(scheme.name)
+)

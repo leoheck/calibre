@@ -1,10 +1,12 @@
-from future_builtins import map
+#!/usr/bin/env python2
+# vim:fileencoding=utf-8
+# License: GPLv3 Copyright: 2015, Kovid Goyal <kovid at kovidgoyal.net>
 
-__license__   = 'GPL v3'
-__copyright__ = '2008, Kovid Goyal kovid@kovidgoyal.net'
-__docformat__ = 'restructuredtext en'
+from future_builtins import map
+import sys, locale, codecs, os, importlib, collections
+
 __appname__   = u'calibre'
-numeric_version = (2, 64, 0)
+numeric_version = (2, 82, 0)
 __version__   = u'.'.join(map(unicode, numeric_version))
 __author__    = u"Kovid Goyal <kovid@kovidgoyal.net>"
 
@@ -12,7 +14,6 @@ __author__    = u"Kovid Goyal <kovid@kovidgoyal.net>"
 Various run time constants.
 '''
 
-import sys, locale, codecs, os, importlib, collections
 
 _plat = sys.platform.lower()
 iswindows = 'win32' in _plat or 'win64' in _plat
@@ -22,9 +23,10 @@ isfreebsd = 'freebsd' in _plat
 isnetbsd = 'netbsd' in _plat
 isdragonflybsd = 'dragonfly' in _plat
 isbsd = isfreebsd or isnetbsd or isdragonflybsd
-islinux   = not(iswindows or isosx or isbsd)
+ishaiku = 'haiku1' in _plat
+islinux   = not(iswindows or isosx or isbsd or ishaiku)
 isfrozen  = hasattr(sys, 'frozen')
-isunix = isosx or islinux
+isunix = isosx or islinux or ishaiku
 isportable = os.environ.get('CALIBRE_PORTABLE_BUILD', None) is not None
 ispy3 = sys.version_info.major > 2
 isxp = iswindows and sys.getwindowsversion().major < 6
@@ -32,7 +34,10 @@ is64bit = sys.maxsize > (1 << 32)
 isworker = 'CALIBRE_WORKER' in os.environ or 'CALIBRE_SIMPLE_WORKER' in os.environ
 if isworker:
     os.environ.pop('CALIBRE_FORCE_ANSI', None)
-
+FAKE_PROTOCOL, FAKE_HOST = 'https', 'calibre-internal.invalid'
+VIEWER_APP_UID = 'com.calibre-ebook.viewer'
+EDITOR_APP_UID = 'com.calibre-ebook.edit-book'
+MAIN_APP_UID = 'com.calibre-ebook.main-gui'
 try:
     preferred_encoding = locale.getpreferredencoding()
     codecs.lookup(preferred_encoding)
@@ -45,6 +50,8 @@ win32api   = importlib.import_module('win32api') if iswindows else None
 fcntl      = None if iswindows else importlib.import_module('fcntl')
 
 _osx_ver = None
+
+
 def get_osx_version():
     global _osx_ver
     if _osx_ver is None:
@@ -59,6 +66,7 @@ def get_osx_version():
         except:
             _osx_ver = OSX(0, 0, 0)
     return _osx_ver
+
 
 filesystem_encoding = sys.getfilesystemencoding()
 if filesystem_encoding is None:
@@ -77,11 +85,14 @@ else:
 
 DEBUG = False
 
+
 def debug():
     global DEBUG
     DEBUG = True
 
+
 _cache_dir = None
+
 
 def _get_cache_dir():
     confcache = os.path.join(config_dir, u'caches')
@@ -114,6 +125,7 @@ def _get_cache_dir():
             candidate = confcache
     return candidate
 
+
 def cache_dir():
     global _cache_dir
     if _cache_dir is None:
@@ -121,6 +133,7 @@ def cache_dir():
     return _cache_dir
 
 # plugins {{{
+
 
 class Plugins(collections.Mapping):
 
@@ -231,6 +244,7 @@ else:
         print 'No write acces to', config_dir, 'using a temporary dir instead'
         import tempfile, atexit
         config_dir = tempfile.mkdtemp(prefix='calibre-config-')
+
         def cleanup_cdir():
             try:
                 import shutil
@@ -240,6 +254,7 @@ else:
         atexit.register(cleanup_cdir)
 # }}}
 
+
 def get_version():
     '''Return version string for display to user '''
     dv = os.environ.get('CALIBRE_DEVELOP_FROM', None)
@@ -247,16 +262,18 @@ def get_version():
     if numeric_version[-1] == 0:
         v = v[:-2]
     if getattr(sys, 'frozen', False) and dv and os.path.abspath(dv) in sys.path:
-        v += '*'
+        v += '+'
     if iswindows and is64bit:
         v += ' [64bit]'
 
     return v
 
+
 def get_portable_base():
     'Return path to the directory that contains calibre-portable.exe or None'
     if isportable:
         return os.path.dirname(os.path.dirname(os.environ['CALIBRE_PORTABLE_BUILD']))
+
 
 def get_unicode_windows_env_var(name):
     import ctypes
@@ -267,6 +284,7 @@ def get_unicode_windows_env_var(name):
     buf = ctypes.create_unicode_buffer(u'\0'*n)
     ctypes.windll.kernel32.GetEnvironmentVariableW(name, buf, n)
     return buf.value
+
 
 def get_windows_username():
     '''
@@ -288,6 +306,7 @@ def get_windows_username():
 
     return get_unicode_windows_env_var(u'USERNAME')
 
+
 def get_windows_temp_path():
     import ctypes
     n = ctypes.windll.kernel32.GetTempPathW(0, None)
@@ -297,6 +316,7 @@ def get_windows_temp_path():
     ctypes.windll.kernel32.GetTempPathW(n, buf)
     ans = buf.value
     return ans if ans else None
+
 
 def get_windows_user_locale_name():
     import ctypes
@@ -308,7 +328,9 @@ def get_windows_user_locale_name():
         return None
     return u'_'.join(buf.value.split(u'-')[:2])
 
+
 number_formats = None
+
 
 def get_windows_number_formats():
     # This can be changed to use localeconv() once we switch to Visual Studio

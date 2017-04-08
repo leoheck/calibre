@@ -85,15 +85,16 @@ class PagedDisplay
             tmp.style.position = 'absolute'
             document.body.appendChild(tmp)
             for sheet in document.styleSheets
-                for rule in sheet.rules
-                    if rule.type == CSSRule.PAGE_RULE
-                        for prop in ['left', 'top', 'bottom', 'right']
-                            val = rule.style.getPropertyValue('margin-'+prop)
-                            if val
-                                tmp.style.height = val
-                                pxval = parseInt(window.getComputedStyle(tmp).height)
-                                if not isNaN(pxval)
-                                    this.document_margins[prop] = pxval
+                if sheet.rules
+                    for rule in sheet.rules
+                        if rule.type == CSSRule.PAGE_RULE
+                            for prop in ['left', 'top', 'bottom', 'right']
+                                val = rule.style.getPropertyValue('margin-'+prop)
+                                if val
+                                    tmp.style.height = val
+                                    pxval = parseInt(window.getComputedStyle(tmp).height)
+                                    if not isNaN(pxval)
+                                        this.document_margins[prop] = pxval
             document.body.removeChild(tmp)
             if this.document_margins.left is null
                 val = parseInt(window.getComputedStyle(document.body).marginLeft)
@@ -141,6 +142,14 @@ class PagedDisplay
             # Check if the current document is a full screen layout like
             # cover, if so we treat it specially.
             single_screen = (document.body.scrollHeight < window.innerHeight + 75)
+            has_svg = document.getElementsByTagName('svg').length > 0
+            only_img = document.getElementsByTagName('img').length == 1 and document.getElementsByTagName('div').length < 3 and document.getElementsByTagName('p').length < 2
+            if only_img
+                has_viewport = document.head and document.head.querySelector('meta[name="viewport"]')
+                if has_viewport
+                    # Has a viewport and only an img, is probably a comic, see for
+                    # example: https://bugs.launchpad.net/bugs/1667357
+                    single_screen = true
             this.handle_rtl_body(body_style)
             first_layout = true
             if not single_screen and this.cols_per_screen > 1
@@ -232,22 +241,21 @@ class PagedDisplay
 
         # Convert page-breaks to column-breaks
         for sheet in document.styleSheets
-            for rule in sheet.rules
-                if rule.type == CSSRule.STYLE_RULE
-                    for prop in ['page-break-before', 'page-break-after', 'page-break-inside']
-                        val = rule.style.getPropertyValue(prop)
-                        if val
-                            cprop = '-webkit-column-' + prop.substr(5)
-                            priority = rule.style.getPropertyPriority(prop)
-                            rule.style.setProperty(cprop, val, priority)
+            if sheet.rules
+                for rule in sheet.rules
+                    if rule.type == CSSRule.STYLE_RULE
+                        for prop in ['page-break-before', 'page-break-after', 'page-break-inside']
+                            val = rule.style.getPropertyValue(prop)
+                            if val
+                                cprop = '-webkit-column-' + prop.substr(5)
+                                priority = rule.style.getPropertyPriority(prop)
+                                rule.style.setProperty(cprop, val, priority)
 
         if first_layout
             # Because of a bug in webkit column mode, svg elements defined with
             # width 100% are wider than body and lead to a blank page after the
             # current page (when cols_per_screen == 1). Similarly img elements
             # with height=100% overflow the first column
-            has_svg = document.getElementsByTagName('svg').length > 0
-            only_img = document.getElementsByTagName('img').length == 1 and document.getElementsByTagName('div').length < 3 and document.getElementsByTagName('p').length < 2
             # We only set full_screen_layout if scrollWidth is in (body_width,
             # 2*body_width) as if it is <= body_width scrolling will work
             # anyway and if it is >= 2*body_width it can't be a full screen

@@ -14,6 +14,7 @@ from calibre.gui2 import error_dialog
 from calibre.gui2.actions import InterfaceAction
 from calibre.gui2.dialogs.confirm_delete import confirm
 
+
 class StoreAction(InterfaceAction):
 
     name = 'Store'
@@ -145,9 +146,8 @@ class StoreAction(InterfaceAction):
             'buying from. Be sure to double check that any books you get '
             'will work with your e-book reader, especially if the book you '
             'are buying has '
-            '<a href="http://drmfree.calibre-ebook.com/about#drm">DRM</a>.'
+            '<a href="https://drmfree.calibre-ebook.com/about#drm">DRM</a>.'
             )), 'about_get_books_msg',
             parent=self.gui, show_cancel_button=False,
             confirm_msg=_('Show this message again'),
             pixmap='dialog_information.png', title=_('About Get Books'))
-

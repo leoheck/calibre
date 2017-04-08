@@ -16,6 +16,7 @@ import os, ctypes, sys, unittest
 from calibre.constants import plugins, iswindows, islinux, isosx
 is_ci = os.environ.get('CI', '').lower() == 'true'
 
+
 class BuildTest(unittest.TestCase):
 
     @unittest.skipUnless(iswindows and not is_ci, 'DLL loading needs testing only on windows (non-continuous integration)')
@@ -53,10 +54,6 @@ class BuildTest(unittest.TestCase):
         # Test that we are using the calibre version of html5lib
         from calibre.ebooks.oeb.polish.parsing import parse_html5
         parse_html5('<p>xxx')
-
-    def test_spell(self):
-        from calibre.spell.dictionary import test_dictionaries
-        test_dictionaries()
 
     def test_plugins(self):
         exclusions = set()
@@ -128,7 +125,7 @@ class BuildTest(unittest.TestCase):
         fmts = set(map(unicode, QImageReader.supportedImageFormats()))
         testf = {'jpg', 'png', 'svg', 'ico', 'gif'}
         self.assertEqual(testf.intersection(fmts), testf, "Qt doesn't seem to be able to load some of its image plugins. Available plugins: %s" % fmts)
-        data = I('blank.png', allow_user_override=False, data=True)
+        data = P('images/blank.png', allow_user_override=False, data=True)
         img = image_from_data(data)
         image_from_data(P('catalog/mastheadImage.gif', allow_user_override=False, data=True))
         for fmt in 'png bmp jpeg'.split():
@@ -141,6 +138,9 @@ class BuildTest(unittest.TestCase):
         os.environ.pop('DISPLAY', None)
         app = Application([], headless=islinux)
         self.assertGreaterEqual(len(QFontDatabase().families()), 5, 'The QPA headless plugin is not able to locate enough system fonts via fontconfig')
+        if islinux:
+            from calibre.ebooks.covers import create_cover
+            create_cover('xxx', ['yyy'])
         na = QNetworkAccessManager()
         self.assertTrue(hasattr(na, 'sslErrors'), 'Qt not compiled with openssl')
         from PyQt5.QtWebKitWidgets import QWebView
@@ -230,6 +230,7 @@ class BuildTest(unittest.TestCase):
             if not cafile or not cafile.endswith('/mozilla-ca-certs.pem') or not os.access(cafile, os.R_OK):
                 self.assert_('Mozilla CA certs not loaded')
 
+
 def find_tests():
     ans = unittest.defaultTestLoader.loadTestsFromTestCase(BuildTest)
     from calibre.utils.icu_test import find_tests
@@ -238,11 +239,15 @@ def find_tests():
     ans.addTests(unittest.defaultTestLoader.loadTestsFromModule(dtests))
     from tinycss.tests.main import find_tests
     ans.addTests(find_tests())
+    from calibre.spell.dictionary import find_tests
+    ans.addTests(find_tests())
     return ans
+
 
 def test():
     from calibre.utils.run_tests import run_cli
     run_cli(find_tests())
+
 
 if __name__ == '__main__':
     test()

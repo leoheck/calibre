@@ -27,6 +27,7 @@ from calibre.utils.logging import GUILog
 
 ICON_SIZE = 24
 
+
 class XPathDialog(QDialog):  # {{{
 
     def __init__(self, parent, prefs):
@@ -119,6 +120,7 @@ class XPathDialog(QDialog):  # {{{
     def xpaths(self):
         return [w.xpath for w in self.widgets if w.xpath.strip()]
 # }}}
+
 
 class ItemView(QFrame):  # {{{
 
@@ -351,6 +353,7 @@ class ItemView(QFrame):  # {{{
 
 # }}}
 
+
 class TreeWidget(QTreeWidget):  # {{{
 
     edit_item = pyqtSignal()
@@ -544,6 +547,7 @@ class TreeWidget(QTreeWidget):  # {{{
 
     def show_context_menu(self, point):
         item = self.currentItem()
+
         def key(k):
             sc = unicode(QKeySequence(k | Qt.CTRL).toString(QKeySequence.NativeText))
             return ' [%s]'%sc
@@ -568,6 +572,7 @@ class TreeWidget(QTreeWidget):  # {{{
             m.addAction(QIcon(I('modified.png')), _('Bulk rename all selected items'), self.bulk_rename)
             m.exec_(QCursor.pos())
 # }}}
+
 
 class TOCView(QWidget):  # {{{
 
@@ -879,7 +884,8 @@ class TOCEditor(QDialog):  # {{{
         ll.addWidget(pi, alignment=Qt.AlignHCenter|Qt.AlignCenter)
         la = self.wait_label = QLabel(_('Loading %s, please wait...')%t)
         la.setWordWrap(True)
-        la.setStyleSheet('QLabel { font-size: 20pt }')
+        f = la.font()
+        f.setPointSize(20), la.setFont(f)
         ll.addWidget(la, alignment=Qt.AlignHCenter|Qt.AlignTop)
         self.toc_view = TOCView(self, self.prefs)
         self.toc_view.add_new_item.connect(self.add_new_item)

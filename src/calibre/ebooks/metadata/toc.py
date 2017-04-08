@@ -105,6 +105,7 @@ class TOC(list):
     @dynamic_property
     def abspath(self):
         doc='Return the file this toc entry points to as a absolute path to a file on the system.'
+
         def fget(self):
             if self.href is None:
                 return None
@@ -274,7 +275,10 @@ class TOC(list):
             desc = getattr(np, 'description', None)
             if desc:
                 desc = re.sub(r'\s+', ' ', desc)
-                elem.append(C.meta(desc, name='description'))
+                try:
+                    elem.append(C.meta(desc, name='description'))
+                except ValueError:
+                    elem.append(C.meta(clean_xml_chars(desc), name='description'))
             idx = getattr(np, 'toc_thumbnail', None)
             if idx:
                 elem.append(C.meta(idx, name='toc_thumbnail'))
