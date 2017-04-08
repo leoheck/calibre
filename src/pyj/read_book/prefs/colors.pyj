@@ -59,7 +59,7 @@ def new_color_scheme(ev):
     container.lastChild.style.display = 'block'
     for inp in container.lastChild.querySelectorAll('input'):
         n = inp.getAttribute('name')
-        inp.value = {'name':'', 'bg':'#ffffff', 'fg':'#000000'}[n]
+        inp.value = {'name':'', 'bg':'#f9f9f9', 'fg':'#2d2d2d'}[n]
     container.lastChild.querySelector('input').focus()
     return container
 
@@ -184,8 +184,8 @@ def create_colors_panel(container):
     container.appendChild(E.div(id=EDIT_SCHEME, style='display:none',
         E.table(
             E.tr(E.td(_('Name:')), E.td(E.input(name='name'))),
-            E.tr(E.td(_('Background:')), E.td(E.input(name='bg', type='color', value='#ffffff'))),
-            E.tr(E.td(_('Foreground:')), E.td(E.input(name='fg', type='color', value='#000000'))),
+            E.tr(E.td(_('Background:')), E.td(E.input(name='bg', type='color', value='#f9f9f9'))),
+            E.tr(E.td(_('Foreground:')), E.td(E.input(name='fg', type='color', value='#2d2d2d'))),
         ),
         E.div(style="display:flex; justify-content: flex-end; margin: 1ex 1em",
             create_button(_('OK'), 'check', add_color_scheme), E.span('\xa0'), create_button(_('Cancel'), 'close', add_color_scheme.bind('cancel'))

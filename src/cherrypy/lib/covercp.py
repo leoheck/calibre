@@ -56,7 +56,7 @@ TEMPLATE_MENU = """<html>
             white-space: pre;
             }
         #tree a:active, a:focus {
-            background-color: #eeeeee;
+            background-color: #dedede;
             padding: 1px;
             color: white;
             border: 0px solid #9999FF;
@@ -87,7 +87,7 @@ TEMPLATE_MENU = """<html>
             font-size: 8pt;
             font-family: Andale Mono, monospace;
             width: 100%;
-            background-color: #eeeeee;
+            background-color: #dedede;
             }
         #crumbs a {
             color: #f88;
@@ -104,7 +104,7 @@ TEMPLATE_MENU = """<html>
             border: 1px solid #999;
             }
         #submit {
-            background-color: #eeeeee;
+            background-color: #dedede;
             color: white;
             border: 0;
             margin-bottom: -9px;
@@ -151,7 +151,7 @@ TEMPLATE_COVERAGE = """<html>
                font-size: 10pt; white-space: pre; }
 
          .lineno { background-color: #eee;}
-         .notcovered .lineno { background-color: #000;}
+         .notcovered .lineno { background-color: #fff;}
          table { border-collapse: collapse;
     </style>
 </head>

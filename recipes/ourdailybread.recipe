@@ -39,7 +39,7 @@ class OurDailyBread(BasicNewsRecipe):
                 .devotionalTitle{font-family:Arial,Helvetica,sans-serif; font-size:large; font-weight: bold;}
                 .devotionalDate{font-family:Arial,Helvetica,sans-serif; font-size:xx-small;}
                 .devotionalVerse{font-family:Arial,Helvetica,sans-serif; font-size:xx-small; }
-                a{color:#000000;font-family:Arial,Helvetica,sans-serif; font-size:x-small;}
+                a{color:#2d2d2d;font-family:Arial,Helvetica,sans-serif; font-size:x-small;}
                 '''
 
     feeds = [(u'Our Daily Bread', u'http://odb.org/feed/')]

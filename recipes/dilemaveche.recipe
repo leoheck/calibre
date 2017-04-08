@@ -144,4 +144,4 @@ class DilemaVeche(BasicNewsRecipe):
                 print('nu este nici pdf nici imagine')
                 cover_url = 'http://www.dilemaveche.ro/sites/all/themes/dilema/theme/dilema_two/layouter/dilema_two_homepage/logo.png'
         return cover_url
-    cover_margins = (10, 15, '#ffffff')
+    cover_margins = (10, 15, '#f9f9f9')

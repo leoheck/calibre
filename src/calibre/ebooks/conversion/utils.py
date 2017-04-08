@@ -591,7 +591,7 @@ class HeuristicProcessor(object):
                     try:
                         width = int(re.sub('.*?width(:|=)(?P<wnum>\d+).*', '\g<wnum>', replacement_break))
                     except:
-                        scene_break = hr_open+'<hr style="height: 3px; background:#eeeeee" /></div>'
+                        scene_break = hr_open+'<hr style="height: 3px; background:#dedede" /></div>'
                         self.log.warn('Invalid replacement scene break'
                                 ' expression, using default')
                     else:
@@ -600,7 +600,7 @@ class HeuristicProcessor(object):
                         hr_open = re.sub('45', unicode(divpercent), hr_open)
                         scene_break = hr_open+replacement_break+'</div>'
                 else:
-                    scene_break = hr_open+'<hr style="height: 3px; background:#eeeeee" /></div>'
+                    scene_break = hr_open+'<hr style="height: 3px; background:#dedede" /></div>'
             elif re.match('^<img', replacement_break):
                 scene_break = self.scene_break_open+replacement_break+'</p>'
             else:

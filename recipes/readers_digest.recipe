@@ -21,8 +21,8 @@ class ReadersDigest(BasicNewsRecipe):
     language = 'en'
     remove_javascript = True
 
-    extra_css      = ''' h1 {font-family:georgia,serif;color:#000000;}
-                        .mainHd{font-family:georgia,serif;color:#000000;}
+    extra_css      = ''' h1 {font-family:georgia,serif;color:#2d2d2d;}
+                        .mainHd{font-family:georgia,serif;color:#2d2d2d;}
                          h2 {font-family:Arial,Sans-serif;}
                         .name{font-family:Arial,Sans-serif; font-size:x-small;font-weight:bold; }
                         .date{font-family:Arial,Sans-serif; font-size:x-small ;color:#999999;}

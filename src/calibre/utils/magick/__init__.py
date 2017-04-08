@@ -11,7 +11,7 @@ if False:
     PixelWand
 
 
-def create_canvas(width, height, bgcolor='#ffffff'):
+def create_canvas(width, height, bgcolor='#f9f9f9'):
     canvas = Image()
     canvas.create_canvas(int(width), int(height), str(bgcolor))
     return canvas

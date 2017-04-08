@@ -23,7 +23,7 @@
        inkscape:collect="always"
        id="linearGradient4213">
       <stop
-         style="stop-color:#ffffff;stop-opacity:1"
+         style="stop-color:#f9f9f9;stop-opacity:1"
          offset="0"
          id="stop4215" />
       <stop
@@ -66,7 +66,7 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -144,7 +144,7 @@
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="csssscc" />
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4.02708244;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;fill-rule:evenodd;stroke:#2d2d2d;stroke-width:4.02708244;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 9.6415558,1036.8579 83.8879072,0"
        id="path4223"
        inkscape:connector-curvature="0" />

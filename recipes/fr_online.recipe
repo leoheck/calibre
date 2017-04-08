@@ -26,14 +26,14 @@ class FROnlineRecipe(BasicNewsRecipe):
     oldest_article = 1   # Increase this number if you're interested in older articles
     max_articles_per_feed = 50  # Seems a reasonable number to me
     extra_css              = '''
-                            body { font-family: "arial", "verdana", "geneva", sans-serif; font-size: 12px; margin: 0px; background-color: #ffffff;}
+                            body { font-family: "arial", "verdana", "geneva", sans-serif; font-size: 12px; margin: 0px; background-color: #f9f9f9;}
                             .imgSubline{background-color: #f4f4f4; font-size: 0.8em;}
                             .p--heading-1 {font-weight: bold;}
                             .calibre_navbar {font-size: 0.8em; font-family: "arial", "verdana", "geneva", sans-serif;}
                             '''
     remove_tags = [dict(name='div', attrs={'id': 'Logo'})]
     cover_url = 'http://www.fr-online.de/image/view/-/1474018/data/823552/-/logo.png'
-    cover_margins = (100, 150, '#ffffff')
+    cover_margins = (100, 150, '#f9f9f9')
 
     feeds = []
     feeds.append(

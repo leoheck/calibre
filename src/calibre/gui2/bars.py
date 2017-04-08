@@ -78,6 +78,7 @@ class ToolBar(QToolBar):  # {{{
         donate.setAutoRaise(True)
         donate.setCursor(Qt.PointingHandCursor)
         self.setAcceptDrops(True)
+
         self.showing_donate = False
 
     def resizeEvent(self, ev):
@@ -134,8 +135,8 @@ class ToolBar(QToolBar):  # {{{
                     bar.setup_tool_button(bar, ac, QToolButton.MenuButtonPopup)
                     ac.setVisible(False)
             elif what == 'Donate':
-                bar.addWidget(self.donate_button)
-                self.showing_donate = True
+                # bar.addWidget(self.donate_button)
+                self.showing_donate = False
             elif what in self.gui.iactions:
                 action = self.gui.iactions[what]
                 bar.addAction(action.qaction)

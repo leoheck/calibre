@@ -42,7 +42,7 @@ class TheGrid(BasicNewsRecipe):
     #: Keep only the specified tags and their children.
     # keep_only_tags        = [dict(name='div', id='content')]
 
-    cover_margins = (0, 0, '#ffffff')
+    cover_margins = (0, 0, '#f9f9f9')
 
     INDEX = 'http://www.thegridto.com'
 

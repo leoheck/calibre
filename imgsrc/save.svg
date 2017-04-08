@@ -44,7 +44,7 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -118,27 +118,27 @@
     <g
        transform="matrix(1.0385714,0,0,-0.32005121,12.070391,1039.6119)"
        id="g8"
-       style="fill:#000000;fill-opacity:0.66872427">
+       style="fill:#2d2d2d;fill-opacity:0.66872427">
       <path
          inkscape:connector-curvature="0"
          d="m 82.292,16.667 c 0,1.146 -0.938,2.083 -2.084,2.083 l -60.416,0 c -1.146,0 -2.083,-0.938 -2.083,-2.083 l 0,-2.083 c 0,-1.146 0.937,-2.083 2.083,-2.083 l 60.417,0 c 1.146,0 2.084,0.938 2.084,2.083 l 0,2.083 z"
          id="path10"
-         style="fill:#000000;fill-opacity:0.66872427" />
+         style="fill:#2d2d2d;fill-opacity:0.66872427" />
     </g>
     <g
        transform="matrix(1.0385714,0,0,-0.32005121,12.070391,1027.8625)"
        id="g12"
-       style="fill:#000000;fill-opacity:0.66872427">
+       style="fill:#2d2d2d;fill-opacity:0.66872427">
       <path
          inkscape:connector-curvature="0"
          d="m 82.292,29.167 c 0,1.146 -0.938,2.083 -2.084,2.083 l -60.416,0 c -1.146,0 -2.083,-0.938 -2.083,-2.083 l 0,-2.083 c 0,-1.146 0.937,-2.083 2.083,-2.083 l 60.417,0 c 1.146,0 2.084,0.938 2.084,2.083 l 0,2.083 z"
          id="path14"
-         style="fill:#000000;fill-opacity:0.66872427" />
+         style="fill:#2d2d2d;fill-opacity:0.66872427" />
     </g>
     <path
        inkscape:connector-curvature="0"
        d="m 97.536509,1002.7776 c 0,-0.3668 -0.97418,-0.6667 -2.164383,-0.6667 l -62.74633,0 c -1.190203,0 -2.163344,0.3002 -2.163344,0.6667 l 0,0.6666 c 0,0.3668 0.973141,0.6667 2.163344,0.6667 l 62.747369,0 c 1.190202,0 2.164383,-0.3002 2.164383,-0.6667 l 0,-0.6666 z"
        id="path18"
-       style="fill:#000000;fill-opacity:0.66872427" />
+       style="fill:#2d2d2d;fill-opacity:0.66872427" />
   </g>
 </svg>

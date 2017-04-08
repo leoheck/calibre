@@ -45,7 +45,7 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -118,14 +118,14 @@
        sodipodi:nodetypes="cccssscccccc"
        style="fill:url(#radialGradient4162);fill-opacity:1" />
     <g
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:90px;line-height:125%;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:90px;line-height:125%;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="text4139"
        transform="matrix(1.0013446,0,0,0.99830772,0.93601695,2.8218614)">
       <path
          d="m 62.017998,998.55914 q -1.801758,0 -3.164063,-1.3623 -1.362304,-1.40625 -1.362304,-3.16406 0,-3.03223 5.625,-7.47071 l 10.502929,-7.91015 q 5.668946,-4.87793 5.668946,-8.9209 0,-5.09766 -4.79004,-9.4043 -4.614257,-4.1748 -9.799804,-4.1748 -2.768555,0 -7.03125,2.85644 -4.262696,2.8125 -5.273438,2.8125 -1.801758,0 -3.120117,-1.45019 -1.274414,-1.4502 -1.274414,-3.25196 0,-3.47168 6.723633,-6.89941 6.020508,-3.07617 9.975586,-3.07617 8.833008,0 16.040039,6.89941 7.207031,6.89942 7.207031,15.68848 0,6.41601 -4.130859,11.38183 -2.460938,2.98829 -9.140625,7.73438 -6.723633,4.87793 -9.360352,7.91016 -1.538086,1.80175 -3.295898,1.80175 z m -2.416992,16.69926 q -1.933594,0 -3.515625,-1.3184 -1.538086,-1.2744 -1.538086,-3.1201 0,-2.7246 1.450195,-4.9219 1.625976,-2.4609 4.174805,-2.4609 4.21875,0 4.21875,5.1855 0,2.417 -1.142579,4.3506 -1.40625,2.2852 -3.64746,2.2852 z"
          id="path4144"
          inkscape:connector-curvature="0"
-         style="fill:#ffffff;fill-opacity:1" />
+         style="fill:#f9f9f9;fill-opacity:1" />
     </g>
   </g>
 </svg>

@@ -45,8 +45,8 @@ class Politico(BasicNewsRecipe):
                 .author{color:#808080;font-size:x-small;}
                 a{ color:#003399;}
                 .byline{color:#696969 ; font-size:x-small;}
-                .story{color:#000000;}
-                td{color:#000000;}
+                .story{color:#2d2d2d;}
+                td{color:#2d2d2d;}
                 '''
 
     feeds = [

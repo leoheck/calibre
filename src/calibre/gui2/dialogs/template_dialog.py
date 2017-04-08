@@ -80,14 +80,14 @@ class TemplateHighlighter(QSyntaxHighlighter):
         Config = self.Config
         Config["fontfamily"] = "monospace"
         for name, color, bold, italic in (
-                ("normal", "#000000", False, False),
+                ("normal", "#2d2d2d", False, False),
                 ("keyword", "#000080", True, False),
                 ("builtin", "#0000A0", False, False),
                 ("comment", "#007F00", False, True),
                 ("string", "#808000", False, False),
                 ("number", "#924900", False, False),
-                ("lparen", "#000000", True, True),
-                ("rparen", "#000000", True, True)):
+                ("lparen", "#2d2d2d", True, True),
+                ("rparen", "#2d2d2d", True, True)):
             Config["%sfontcolor" % name] = color
             Config["%sfontbold" % name] = bold
             Config["%sfontitalic" % name] = italic

@@ -66,7 +66,7 @@ class AdvancedUserRecipe1307556816(BasicNewsRecipe):
             # print '***TRIMMED img width is: ', width, 'height is: ', height
             left = 0
             top = 0
-            border_color = '#ffffff'
+            border_color = '#f9f9f9'
             width, height = img.size
             # print '***retrieved img width is: ', width, 'height is: ', height
             height_correction = 1.17

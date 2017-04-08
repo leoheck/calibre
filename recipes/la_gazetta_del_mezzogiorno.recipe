@@ -40,5 +40,5 @@ class AdvancedUserRecipe1324038402(BasicNewsRecipe):
     conversion_options = {'linearize_tables': True}
     extra_css = '''
         .font7 {color: #555555; font-family: "Verdana"; font-size: 23px; font-weight: 700; height: auto; text-align: left; text-decoration: none; }
-        .font16 { color: #000000; font-family: "Arial"; font-size: 14px; font-weight: 400; text-align: left; }
+        .font16 { color: #2d2d2d; font-family: "Arial"; font-size: 14px; font-weight: 400; text-align: left; }
                 '''

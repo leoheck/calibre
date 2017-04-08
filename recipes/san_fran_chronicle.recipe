@@ -24,13 +24,13 @@ class SanFranciscoChronicle(BasicNewsRecipe):
     extra_css       = '''
                         h1{font-family :Arial,Helvetica,sans-serif; font-size:large;}
                         h2{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#666666;}
-                        h3{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#000000;}
+                        h3{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#2d2d2d;}
                         h4{font-family :Arial,Helvetica,sans-serif; font-size: x-small;}
                         p{font-family :Arial,Helvetica,sans-serif; font-size:x-small;}
                         .byline{font-family :Arial,Helvetica,sans-serif; font-size: xx-small;}
                         .date{font-family :Arial,Helvetica,sans-serif; font-size: xx-small;}
                         .dtlcomment{font-style:italic;}
-                        .georgia h3{font-family :Arial,Helvetica,sans-serif; font-size:x-small; color:#000000;}
+                        .georgia h3{font-family :Arial,Helvetica,sans-serif; font-size:x-small; color:#2d2d2d;}
                      '''
 
     feeds = [

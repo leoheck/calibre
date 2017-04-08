@@ -60,8 +60,8 @@ def set_toc_anchor_map(val):
     toc_anchor_map.value = val
 
 default_color_schemes = {
-    'white':{'foreground':'#000000', 'background':'#ffffff', 'name':_('White')},
-    'black':{'foreground':'#ffffff', 'background':'#000000', 'name':_('Black')},
+    'white':{'foreground':'#2d2d2d', 'background':'#f9f9f9', 'name':_('White')},
+    'black':{'foreground':'#f9f9f9', 'background':'#2d2d2d', 'name':_('Black')},
     'sepia-light':{'foreground':'#39322B', 'background':'#F6F3E9', 'name':_('Sepia Light')},
     'sepia-dark': {'background':'#39322B', 'foreground':'#F6F3E9', 'name':_('Sepia Dark')},
 }

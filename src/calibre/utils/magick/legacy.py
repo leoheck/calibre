@@ -20,7 +20,7 @@ from calibre.utils.imghdr import identify
 class PixelWand(object):
 
     def __init__(self):
-        self.color = '#ffffff'
+        self.color = '#f9f9f9'
 
 
 class Image(object):

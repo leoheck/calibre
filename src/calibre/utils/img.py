@@ -145,7 +145,7 @@ def save_image(img, path, **kw):
         f.write(image_to_data(image_from_data(img), **kw))
 
 
-def save_cover_data_to(data, path=None, bgcolor='#ffffff', resize_to=None, compression_quality=90, minify_to=None, grayscale=False, data_fmt='jpeg'):
+def save_cover_data_to(data, path=None, bgcolor='#f9f9f9', resize_to=None, compression_quality=90, minify_to=None, grayscale=False, data_fmt='jpeg'):
     '''
     Saves image in data to path, in the format specified by the path
     extension. Removes any transparency. If there is no transparency and no
@@ -197,7 +197,7 @@ def save_cover_data_to(data, path=None, bgcolor='#ffffff', resize_to=None, compr
 # Overlaying images {{{
 
 
-def blend_on_canvas(img, width, height, bgcolor='#ffffff'):
+def blend_on_canvas(img, width, height, bgcolor='#f9f9f9'):
     ' Blend the `img` onto a canvas with the specified background color and size '
     w, h = img.width(), img.height()
     scaled, nw, nh = fit_image(w, h, width, height)
@@ -212,7 +212,7 @@ def blend_on_canvas(img, width, height, bgcolor='#ffffff'):
 
 class Canvas(object):
 
-    def __init__(self, width, height, bgcolor='#ffffff'):
+    def __init__(self, width, height, bgcolor='#f9f9f9'):
         self.img = QImage(width, height, QImage.Format_RGB32)
         self.img.fill(QColor(bgcolor))
 
@@ -230,7 +230,7 @@ class Canvas(object):
         return image_to_data(self.img, compression_quality=compression_quality, fmt=fmt)
 
 
-def create_canvas(width, height, bgcolor='#ffffff'):
+def create_canvas(width, height, bgcolor='#f9f9f9'):
     'Create a blank canvas of the specified size and color '
     img = QImage(width, height, QImage.Format_RGB32)
     img.fill(QColor(bgcolor))
@@ -254,7 +254,7 @@ def texture_image(canvas, texture):
     return imageops.texture_image(canvas, texture)
 
 
-def blend_image(img, bgcolor='#ffffff'):
+def blend_image(img, bgcolor='#f9f9f9'):
     ' Used to convert images that have semi-transparent pixels to opaque by blending with the specified color '
     canvas = QImage(img.size(), QImage.Format_RGB32)
     canvas.fill(QColor(bgcolor))
@@ -265,7 +265,7 @@ def blend_image(img, bgcolor='#ffffff'):
 # Image borders {{{
 
 
-def add_borders_to_image(img, left=0, top=0, right=0, bottom=0, border_color='#ffffff'):
+def add_borders_to_image(img, left=0, top=0, right=0, bottom=0, border_color='#f9f9f9'):
     img = image_from_data(img)
     if not (left > 0 or right > 0 or top > 0 or bottom > 0):
         return img

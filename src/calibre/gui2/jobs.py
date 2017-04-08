@@ -47,7 +47,7 @@ class JobManager(QAbstractTableModel, AdaptSQP):  # {{{
         QAbstractTableModel.__init__(self)
         SearchQueryParser.__init__(self, ['all'])
 
-        self.wait_icon     = (QIcon(I('jobs.png')))
+        self.wait_icon     = (QIcon(I('dialog_error.png')))
         self.running_icon  = (QIcon(I('exec.png')))
         self.error_icon    = (QIcon(I('dialog_error.png')))
         self.done_icon     = (QIcon(I('ok.png')))
@@ -470,7 +470,6 @@ class JobsButton(QFrame):  # {{{
             size = 24
         self.pi = ProgressIndicator(self, size)
         self._jobs = QLabel(('Jobs:') + ' 0')
-        self._jobs.setPointSize(10)
         self._jobs.mouseReleaseEvent = self.mouseReleaseEvent
         self.shortcut = 'Shift+Alt+J'
 
@@ -489,7 +488,7 @@ class JobsButton(QFrame):  # {{{
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._jobs.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.setCursor(Qt.PointingHandCursor)
-        b = ('Click to see list of jobs')
+        b = ('Click to see list the of jobs')
         self.setToolTip(b + u' (%s)'%self.shortcut)
         self.action_toggle = QAction(b, parent)
         parent.addAction(self.action_toggle)

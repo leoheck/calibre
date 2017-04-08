@@ -38,7 +38,7 @@ class ScienceNewsIssue(BasicNewsRecipe):
                 .content_edition{font-family:helvetica,arial ;font-size: xx-small ;}
                 .exclusive{color:#FF0000 ;}
                 .anonymous{color:#14487E ;}
-                .content_content{font-family:helvetica,arial ;font-size: medium ; color:#000000;}
+                .content_content{font-family:helvetica,arial ;font-size: medium ; color:#2d2d2d;}
                 .description{color:#585858;font-family:helvetica,arial ;font-size: large ;}
                 .credit{color:#A6A6A6;font-family:helvetica,arial ;font-size: xx-small ;}
                 '''

@@ -80,6 +80,6 @@ class norteCastilla(BasicNewsRecipe):
                     .articulo .photo-alt1,.colC_articulo .photo{text-align:center; margin:0 auto; background-color:#F2F2F2;}
                     .articulo .photo-alt1 img,.colC_articulo .photo img{text-align:center; margin:0 auto;}
                     .articulo .photo-caption a{ color:#666;}
-                    .fotogaleriasH .photo {background-color:#DCDCDC;margin:0 auto;padding:5px 0 0;text-align:center;}
+                    .fotogaleriasH .photo {background-color:#dedede;margin:0 auto;padding:5px 0 0;text-align:center;}
                     .fotogaleriasH .photo img {display: block; margin:0 auto;text-align:center;}
                 '''

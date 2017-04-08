@@ -16,7 +16,7 @@ class RevistaMuyInteresante(BasicNewsRecipe):
 
     conversion_options = {'linearize_tables': True}
 
-    extra_css = ' .txt_articulo{ font-family: sans-serif; font-size: medium; text-align: justify } .contentheading{font-family: serif; font-size: large; font-weight: bold; color: #000000; text-align: center}'  # noqa
+    extra_css = ' .txt_articulo{ font-family: sans-serif; font-size: medium; text-align: justify } .contentheading{font-family: serif; font-size: large; font-weight: bold; color: #2d2d2d; text-align: center}'  # noqa
 
     def preprocess_html(self, soup):
         for item in soup.findAll(style=True):

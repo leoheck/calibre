@@ -43,7 +43,7 @@ def minify_image(data, minify_to=(1200, 1600), preserve_aspect_ratio=True):
     return img
 
 
-def save_cover_data_to(data, path, bgcolor='#ffffff', resize_to=None,
+def save_cover_data_to(data, path, bgcolor='#f9f9f9', resize_to=None,
         return_data=False, compression_quality=90, minify_to=None,
         grayscale=False):
     '''
@@ -73,7 +73,7 @@ def save_cover_data_to(data, path, bgcolor='#ffffff', resize_to=None,
         data, path, bgcolor=bgcolor, resize_to=resize_to, compression_quality=compression_quality, minify_to=minify_to, grayscale=grayscale, data_fmt=fmt)
 
 
-def thumbnail(data, width=120, height=120, bgcolor='#ffffff', fmt='jpg',
+def thumbnail(data, width=120, height=120, bgcolor='#f9f9f9', fmt='jpg',
               preserve_aspect_ratio=True, compression_quality=70):
     img = Image()
     img.load(data)
@@ -118,6 +118,6 @@ def identify(path):
 
 
 def add_borders_to_image(img_data, left=0, top=0, right=0, bottom=0,
-        border_color='#ffffff', fmt='jpg'):
+        border_color='#f9f9f9', fmt='jpg'):
     img = abti(img_data, left=left, top=top, right=right, bottom=bottom, border_color=border_color)
     return image_to_data(img, fmt=fmt)

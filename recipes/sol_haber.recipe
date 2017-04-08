@@ -57,7 +57,7 @@ class SolHaberRecipe(BasicNewsRecipe):
     # Disable stylesheets from site.
     no_stylesheets = True
 
-    cover_margins = (20, 20, '#ffffff')
+    cover_margins = (20, 20, '#f9f9f9')
 
     storybody_reg_exp = '^\s*(haber|kose)\s*$'
 

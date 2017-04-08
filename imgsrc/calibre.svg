@@ -40,11 +40,11 @@
        inkscape:collect="always"
        id="linearGradient6757">
       <stop
-         style="stop-color:#ffffff;stop-opacity:1"
+         style="stop-color:#f9f9f9;stop-opacity:1"
          offset="0"
          id="stop6759" />
       <stop
-         style="stop-color:#ffffff;stop-opacity:0.39215687"
+         style="stop-color:#f9f9f9;stop-opacity:0.39215687"
          offset="1"
          id="stop6761" />
     </linearGradient>
@@ -52,7 +52,7 @@
        inkscape:collect="always"
        id="linearGradient6741">
       <stop
-         style="stop-color:#ffffff;stop-opacity:1"
+         style="stop-color:#f9f9f9;stop-opacity:1"
          offset="0"
          id="stop6743" />
       <stop
@@ -70,9 +70,9 @@
       <stop
          id="stop5977"
          offset="0.49999997"
-         style="stop-color:#000000;stop-opacity:1" />
+         style="stop-color:#2d2d2d;stop-opacity:1" />
       <stop
-         style="stop-color:#000000;stop-opacity:0"
+         style="stop-color:#2d2d2d;stop-opacity:0"
          offset="1"
          id="stop5973" />
     </linearGradient>
@@ -694,7 +694,7 @@
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
      bordercolor="#666666"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      id="base"
      showguides="false">
     <inkscape:grid
@@ -867,7 +867,7 @@
        transform="matrix(0.98420937,-0.17700821,0.19459355,0.98088396,0,0)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:90px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;font-size:90px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#2d2d2d;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="680.23669"
        y="864.97888"
        id="text7490"
@@ -877,7 +877,7 @@
          x="680.23669"
          y="864.97888" /></text>
     <path
-       style="fill:#0c13ba;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.12602389px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4345)"
+       style="fill:#0c13ba;fill-opacity:1;fill-rule:evenodd;stroke:#2d2d2d;stroke-width:1.12602389px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4345)"
        d="m 785.34706,662.30978 18.44112,-40.18977 30.67103,31.77403 -49.4241,-288.42662 -49.11215,8.41574 z"
        id="path7563"
        inkscape:connector-curvature="0"

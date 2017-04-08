@@ -339,7 +339,7 @@ class Comments(QWebView):  # {{{
 
     def show_data(self, html):
         def color_to_string(col):
-            ans = '#000000'
+            ans = '#2d2d2d'
             if col.isValid():
                 col = col.toRgb()
                 if col.isValid():

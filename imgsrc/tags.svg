@@ -68,11 +68,11 @@
        inkscape:collect="always"
        id="linearGradient7033">
       <stop
-         style="stop-color:#ffffff;stop-opacity:1;"
+         style="stop-color:#f9f9f9;stop-opacity:1;"
          offset="0"
          id="stop7035" />
       <stop
-         style="stop-color:#ffffff;stop-opacity:0;"
+         style="stop-color:#f9f9f9;stop-opacity:0;"
          offset="1"
          id="stop7037" />
     </linearGradient>
@@ -135,11 +135,11 @@
        inkscape:collect="always"
        id="linearGradient11615">
       <stop
-         style="stop-color:#000000;stop-opacity:1;"
+         style="stop-color:#2d2d2d;stop-opacity:1;"
          offset="0"
          id="stop11617" />
       <stop
-         style="stop-color:#000000;stop-opacity:0;"
+         style="stop-color:#2d2d2d;stop-opacity:0;"
          offset="1"
          id="stop11619" />
     </linearGradient>
@@ -168,7 +168,7 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -246,7 +246,7 @@
          sodipodi:nodetypes="ccccccccccccssss"
          id="rect1410"
          d="m 65.957252,16.860398 c -3.049556,-0.275801 -6.186939,0.749438 -8.53125,3.09375 l -54.125,54.09375 c -4.19508499,4.195085 -4.19508509,10.961163 0,15.15625 l 30.15625,30.156252 c 4.195085,4.19509 10.961166,4.19508 15.15625,0 L 102.70726,65.235398 c 2.49083,-2.490832 3.13273,-5.870037 3.125,-9.09375 l -0.0625,-28.6875 c 0,-5.932749 -4.786,-10.71875 -10.718753,-10.71875 0,0 -28.607642,0.09192 -29.093755,0.125 z m 28.843755,5.125 c 3.66262,-0.16143 6.156253,2.485447 6.156253,5.5625 0,3.077053 -2.485453,5.5625 -5.562503,5.5625 -3.07706,10e-7 -5.59375,-2.485447 -5.59375,-5.5625 0,-2.884737 2.18203,-5.438298 5,-5.5625 z"
-         style="opacity:1;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:5.5999999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:4;stroke-opacity:0.04313725" />
+         style="opacity:1;fill:#2d2d2d;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:5.5999999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:4;stroke-opacity:0.04313725" />
       <rect
          transform="matrix(0.707107,-0.707107,0.707107,0.707107,0,0)"
          rx="7.8982348"

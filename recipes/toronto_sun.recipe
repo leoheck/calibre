@@ -42,10 +42,10 @@ class TorontoSun(BasicNewsRecipe):
     extra_css = '''
                 h1{font-family :Arial,Helvetica,sans-serif; font-size:large;}
                 h2{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#666666;}
-                h3{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#000000;}
+                h3{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#2d2d2d;}
                 p{font-family :Arial,Helvetica,sans-serif; font-size:x-small;}
                 .bold{font-family :Arial,Helvetica,sans-serif; font-size: xx-small;color:#444444;margin-left: 0px;}
-                .subheading{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#000000; font-weight: bold;}
+                .subheading{font-family :Arial,Helvetica,sans-serif; font-size:medium; color:#2d2d2d; font-weight: bold;}
                 .byline{color:#666666; font-family :Arial,Helvetica,sans-serif; font-size: xx-small;}
                 .byline span{color:#666666; font-family :Arial,Helvetica,sans-serif; font-size: xx-small; text-transform: uppercase;}
                 .updated{font-family :Arial,Helvetica,sans-serif; font-size: xx-small;}

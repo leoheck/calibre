@@ -53,7 +53,7 @@ def render_html(mi, css, vertical, widget, all_fields=False, render_data_func=No
             use_roman_numbers=config['use_roman_numerals_for_series_number'])
 
     def color_to_string(col):
-        ans = '#000000'
+        ans = '#2d2d2d'
         if col.isValid():
             col = col.toRgb()
             if col.isValid():

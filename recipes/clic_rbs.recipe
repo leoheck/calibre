@@ -48,6 +48,6 @@ class ClicRBS(BasicNewsRecipe):
                     body{font-family:Arial,Helvetica,sans-serif;font-size:x-small;}
                     h3{font-size:large; color:#082963; font-weight:bold;}
                     #ident{color:#0179B4; font-size:xx-small;}
-                    p{color:#000000;font-weight:normal;}
+                    p{color:#2d2d2d;font-weight:normal;}
                     .commentario p{color:#007BB5; font-style:italic;}
                 '''

@@ -15,7 +15,7 @@ class pravo(BasicNewsRecipe):
                    ]
     extra_css = '.nadpis {font-weight: bold; font-size: 130%;} .medium {text-align: justify;}'
     cover_url = 'http://pravo.novinky.cz/images/horni_6_logo.gif'
-    cover_margins = (0, 100, '#ffffff')
+    cover_margins = (0, 100, '#f9f9f9')
     conversion_options = {'linearize_tables': True}
 
     no_stylesheets = True

@@ -9,7 +9,7 @@ class RBC_ru(BasicNewsRecipe):
     description = u'Российское информационное агентство «РосБизнесКонсалтинг» (РБК) - ленты новостей политики, экономики и финансов, аналитические материалы, комментарии и прогнозы, тематические статьи'  # noqa
     needs_subscription = False
     cover_url = 'http://pics.rbc.ru/img/fp_v4/skin/img/logo.gif'
-    cover_margins = (80, 160, '#ffffff')
+    cover_margins = (80, 160, '#f9f9f9')
     oldest_article = 10
     max_articles_per_feed = 50
     summary_length = 200

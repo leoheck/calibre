@@ -20,7 +20,7 @@
      id="defs4" />
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -93,7 +93,7 @@
          id="path4"
          d="m 40.013479,999.06915 c 6.359757,4.67475 20.124993,-3.15171 30.748644,-17.46631 l 33.295197,33.61766 c -10.626597,14.3161 -20.771572,17.651 -27.134275,12.9792"
          stroke-miterlimit="10"
-         style="fill:#bc3e4c;fill-opacity:1;stroke:#000000;stroke-width:4.40812302;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:10"
+         style="fill:#bc3e4c;fill-opacity:1;stroke:#2d2d2d;stroke-width:4.40812302;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:10"
          inkscape:connector-curvature="0" />
       <ellipse
          id="ellipse6"
@@ -103,18 +103,18 @@
          cx="-616.16022"
          stroke-miterlimit="10"
          transform="matrix(-0.8058623,-0.592103,0.59573364,-0.80318206,0,0)"
-         style="fill:none;stroke:#000000;stroke-width:4.40800762;stroke-miterlimit:10" />
+         style="fill:none;stroke:#2d2d2d;stroke-width:4.40800762;stroke-miterlimit:10" />
       <path
          id="path8"
          d="m 85.46409,977.45432 c 3.178405,-2.48472 6.266967,-5.64375 9.022665,-9.36276 0.785028,-1.05546 1.517033,-2.1285 2.198962,-3.20448 7.602843,-12.04097 8.679493,-24.85155 2.075243,-29.70811 -5.9886,-4.40066 -16.413416,-0.87222 -25.244612,7.869"
          stroke-miterlimit="10"
-         style="fill:none;stroke:#000000;stroke-width:5.8774972;stroke-linecap:round;stroke-miterlimit:10"
+         style="fill:none;stroke:#2d2d2d;stroke-width:5.8774972;stroke-linecap:round;stroke-miterlimit:10"
          inkscape:connector-curvature="0" />
       <path
          id="path10"
          d="m 31.182284,992.23215 56.121393,44.06525 c 5.727905,4.2086 18.116023,-2.8366 27.674813,-15.719 9.55141,-12.8912 12.66501,-26.74548 6.94153,-30.94971 L 69.644231,940.36975"
          stroke-miterlimit="10"
-         style="fill:none;stroke:#000000;stroke-width:4.40812302;stroke-miterlimit:10"
+         style="fill:none;stroke:#2d2d2d;stroke-width:4.40812302;stroke-miterlimit:10"
          inkscape:connector-curvature="0" />
       <path
          style="fill:#37b63b;fill-opacity:1"

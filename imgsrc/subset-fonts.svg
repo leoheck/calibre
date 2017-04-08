@@ -53,7 +53,7 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -131,26 +131,26 @@
       <path
          id="path6"
          d="m 38.035714,973.95734 5.700578,-5.70058 7.070486,7.07049 3.601477,-3.60148 1.243874,14.14565 -14.145643,-1.24388 3.601476,-3.60148 z"
-         style="color:#000000;fill-opacity:1;fill:url(#radialGradient4160)"
+         style="color:#2d2d2d;fill-opacity:1;fill:url(#radialGradient4160)"
          inkscape:connector-curvature="0" />
       <path
          id="path8"
          d="m 128.03571,1052.5526 -5.70057,5.7006 -7.07049,-7.0705 -3.60148,3.6015 -1.24387,-14.1456 14.14564,1.2439 -3.60147,3.6014 z"
-         style="color:#000000;fill-opacity:1;fill:url(#radialGradient4160)"
+         style="color:#2d2d2d;fill-opacity:1;fill:url(#radialGradient4160)"
          inkscape:connector-curvature="0" />
       <path
          id="path10"
          d="m 122.33338,968.255 5.70057,5.70058 -7.07048,7.07048 3.60147,3.60148 -14.14564,1.24388 1.24387,-14.14565 3.60148,3.60148 z"
-         style="color:#000000;fill-opacity:1;fill:url(#radialGradient4160)"
+         style="color:#2d2d2d;fill-opacity:1;fill:url(#radialGradient4160)"
          inkscape:connector-curvature="0" />
       <path
          id="path12"
          d="m 43.738052,1058.255 -5.700577,-5.7006 7.070486,-7.0705 -3.601476,-3.6014 14.145644,-1.2439 -1.243876,14.1456 -3.601476,-3.6015 z"
-         style="color:#000000;fill-opacity:1;fill:url(#radialGradient4160)"
+         style="color:#2d2d2d;fill-opacity:1;fill:url(#radialGradient4160)"
          inkscape:connector-curvature="0" />
     </g>
     <g
-       style="font-style:normal;font-weight:normal;font-size:15px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;font-size:15px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#2d2d2d;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        id="text4168"
        transform="matrix(6.2282516,0,0,6.2282516,316.6379,-5191.6428)">
       <path

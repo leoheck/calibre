@@ -70,14 +70,14 @@
        id="feGaussianBlur6699" /></filter><clipPath
      clipPathUnits="userSpaceOnUse"
      id="clipPath7084"><path
-       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#2d2d2d;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 72,88 L 40,120 L 32,120 L 32,80 L 72,80 L 72,88 z"
        id="path7086" /></clipPath><linearGradient
      id="linearGradient10207"><stop
        style="stop-color:#a2a2a2;stop-opacity:1;"
        offset="0"
        id="stop10209" /><stop
-       style="stop-color:#ffffff;stop-opacity:1;"
+       style="stop-color:#f9f9f9;stop-opacity:1;"
        offset="1"
        id="stop10211" /></linearGradient><linearGradient
      id="XMLID_125_"
@@ -241,7 +241,7 @@
    objecttolerance="10.0"
    borderopacity="1.0"
    bordercolor="#666666"
-   pagecolor="#ffffff"
+   pagecolor="#f9f9f9"
    id="base"
    inkscape:zoom="3.90625"
    inkscape:cx="64"
@@ -443,12 +443,12 @@
 
 
 <path
-   style="opacity:0.5;fill:#000000;fill-opacity:1;filter:url(#filter2770)"
+   style="opacity:0.5;fill:#2d2d2d;fill-opacity:1;filter:url(#filter2770)"
    d="M 16,8 L 16,120 C 16,120 79.15625,120 79.15625,120 L 79.1875,120 C 79.187503,120 91.09375,110.09375 96.59375,104.59375 C 102.09375,99.09375 112,87.1875 112,87.1875 L 112,87.15625 L 112,8 L 16,8 z "
    id="path7865"
    sodipodi:nodetypes="csccscccc"
    transform="matrix(1.0416667,0,0,1.0267857,-2.6666688,-1.7142848)" /><path
-   style="fill:#ffffff;fill-opacity:1"
+   style="fill:#f9f9f9;fill-opacity:1"
    d="M 15.999999,7.5000043 L 15.999998,119.5 C 15.999998,119.5 79.146416,119.5 79.146416,119.5 L 112,86.646424 L 112,7.5000043 L 15.999999,7.5000043 z "
    id="path34"
    sodipodi:nodetypes="cccccc" /><path
@@ -2617,7 +2617,7 @@
 		</g></g></g></g></g><path
    d="M 41.879531,115.98249 C 41.879531,115.98249 66.18914,91.672876 66.18914,91.672876 C 66.18914,91.672876 56.836,94.586 46.586,94.586 C 46.586,104.836 41.879531,115.98249 41.879531,115.98249 z "
    id="path5540"
-   style="opacity:0.4;fill:#000000;fill-opacity:1;filter:url(#filter6697)"
+   style="opacity:0.4;fill:#2d2d2d;fill-opacity:1;filter:url(#filter6697)"
    sodipodi:nodetypes="cccc"
    clip-path="url(#clipPath7084)"
    transform="translate(39.999998,-0.4999957)" /><path

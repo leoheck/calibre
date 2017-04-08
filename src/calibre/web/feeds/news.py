@@ -318,12 +318,12 @@ class BasicNewsRecipe(Recipe):
     #: the cover for the periodical.  Overriding this in your recipe instructs
     #: calibre to render the downloaded cover into a frame whose width and height
     #: are expressed as a percentage of the downloaded cover.
-    #: cover_margins = (10, 15, '#ffffff') pads the cover with a white margin
+    #: cover_margins = (10, 15, '#f9f9f9') pads the cover with a white margin
     #: 10px on the left and right, 15px on the top and bottom.
     #: Color names defined at https://www.imagemagick.org/script/color.php
     #: Note that for some reason, white does not always work on windows. Use
-    #: #ffffff instead
-    cover_margins = (0, 0, '#ffffff')
+    #: #f9f9f9 instead
+    cover_margins = (0, 0, '#f9f9f9')
 
     #: Set to a non empty string to disable this recipe.
     #: The string will be used as the disabled message

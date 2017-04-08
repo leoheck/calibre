@@ -831,7 +831,7 @@ class PythonHighlighter(QSyntaxHighlighter):  # {{{
         baseFormat.setFontFamily('monospace')
         baseFormat.setFontPointSize(11)
         for name, color, bold, italic in (
-                ("normal", "#000000", False, False),
+                ("normal", "#2d2d2d", False, False),
                 ("keyword", "#000080", True, False),
                 ("builtin", "#0000A0", False, False),
                 ("constant", "#0000C0", False, False),

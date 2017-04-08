@@ -54,7 +54,7 @@
   </defs>
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#f9f9f9"
      bordercolor="#666666"
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
@@ -125,7 +125,7 @@
        overflow="visible"
        display="inline"
        visibility="visible"
-       style="color:#000000;text-indent:0;text-transform:none;direction:ltr;block-progression:tb;baseline-shift:baseline;display:inline;overflow:visible;visibility:visible;fill:#3027dd;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate"
+       style="color:#2d2d2d;text-indent:0;text-transform:none;direction:ltr;block-progression:tb;baseline-shift:baseline;display:inline;overflow:visible;visibility:visible;fill:#3027dd;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate"
        d="m 22.181976,924.64788 c -2.716253,0.0137 -4.199861,2.31457 -4.18181,4.1087 l 0,53.22899 c 2.23e-4,2.1513 1.992284,4.1085 4.18181,4.1087 l 83.636194,0 c 2.18953,-2e-4 4.18159,-1.9574 4.18181,-4.1087 l 0,-31.31595 c 0.003,-1.07662 -0.44623,-2.14762 -1.21969,-2.91033 L 86.477307,925.84625 c -0.77621,-0.75997 -1.86633,-1.20097 -2.96212,-1.19837 z m 4.18181,8.21739 52.969595,0 0,17.80435 c 2.34e-4,2.26907 1.872355,4.10846 4.181806,4.10869 l 18.121173,0 0,23.09856 -75.272574,0 z m 61.333211,5.77792 8.0587,7.91773 -8.0587,0 z"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccccccccccccccccccccc" />
@@ -133,7 +133,7 @@
        sodipodi:nodetypes="cccccccccccccc"
        inkscape:connector-curvature="0"
        d="m 22.18198,990.27288 c -2.716253,0.0137 -4.199861,2.31457 -4.18181,4.1087 l 0,53.22902 c 2.23e-4,2.1513 1.992284,4.1085 4.18181,4.1087 l 83.6362,0 c 2.18953,-2e-4 4.18159,-1.9574 4.18181,-4.1087 l -0.21907,-53.19292 c -0.005,-1.88755 -0.90332,-4.04296 -3.14069,-4.05551 z m 4.18181,8.21739 74.66602,0 0.60656,45.01163 -75.27258,0 z"
-       style="color:#000000;text-indent:0;text-transform:none;direction:ltr;block-progression:tb;baseline-shift:baseline;display:inline;overflow:visible;visibility:visible;fill:#3027dd;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate"
+       style="color:#2d2d2d;text-indent:0;text-transform:none;direction:ltr;block-progression:tb;baseline-shift:baseline;display:inline;overflow:visible;visibility:visible;fill:#3027dd;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate"
        visibility="visible"
        display="inline"
        overflow="visible"

@@ -57,7 +57,7 @@ function gpc(node) {
             break;
         node = node.parentNode; // keep walking if transparent
     }
-    return '#ffffff';
+    return '#f9f9f9';
 };
 
 function getWidth(fx, i, width) {
