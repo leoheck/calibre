@@ -139,7 +139,7 @@ class ViewAction(InterfaceAction):
                                     'Windows will try to open %s with calibre itself'
                                     ' resulting in a duplicate in your calibre library. You'
                                     ' should install some program capable of viewing this'
-                                    ' file format and tell windows to use that program to open'
+                                    ' file format and tell Windows to use that program to open'
                                     ' files of this type.') % name, show=True)
 
                 open_local_file(name)
@@ -203,7 +203,7 @@ class ViewAction(InterfaceAction):
     def _view_check(self, num, max_=3):
         if num <= max_:
             return True
-        return question_dialog(self.gui, _('Multiple Books Selected'),
+        return question_dialog(self.gui, _('Multiple books selected'),
                 _('You are attempting to open %d books. Opening too many '
                 'books at once can be slow and have a negative effect on the '
                 'responsiveness of your computer. Once started the process '

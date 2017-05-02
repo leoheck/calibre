@@ -20,7 +20,7 @@ from calibre.customize.ui import plugin_for_input_format
 class ConvertAction(InterfaceAction):
 
     name = 'Convert Books'
-    action_spec = (_('Convert'), 'convert.png', _('Convert books between different ebook formats'), _('C'))
+    action_spec = (('Convert'), 'convert.png', ('Convert books between different ebook formats'), ('C'))
     dont_add_to = frozenset(['context-menu-device'])
     action_type = 'current'
     action_add_menu = True

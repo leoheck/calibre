@@ -569,4 +569,3 @@ class SavedSearchBoxMixin(object):  # {{{
         self.saved_search.clear()
 
     # }}}
-

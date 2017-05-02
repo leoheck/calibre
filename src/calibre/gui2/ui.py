@@ -486,8 +486,8 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
                 Dispatcher(self.content_server_start_failed)
 
     def content_server_start_failed(self, msg):
-        error_dialog(self, _('Failed to start Content Server'),
-                _('Could not start the content server. Error:\n\n%s')%msg,
+        error_dialog(self, _('Failed to start Content server'),
+                _('Could not start the Content server. Error:\n\n%s')%msg,
                 show=True)
 
     def resizeEvent(self, ev):
@@ -560,7 +560,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
     def test_server(self, *args):
         if self.content_server is not None and \
                 self.content_server.exception is not None:
-            error_dialog(self, _('Failed to start content server'),
+            error_dialog(self, _('Failed to start Content server'),
                          unicode(self.content_server.exception)).exec_()
 
     @property
@@ -751,7 +751,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
         self.set_number_of_books_shown()
         self.update_status_bar()
 
-    def job_exception(self, job, dialog_title=_('Conversion Error'), retry_func=None):
+    def job_exception(self, job, dialog_title=_('Conversion error'), retry_func=None):
         if not hasattr(self, '_modeless_dialogs'):
             self._modeless_dialogs = []
         minz = self.is_minimized_to_tray
@@ -774,7 +774,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
                 title = job.description.split(':')[-1].partition('(')[-1][:-1]
                 msg = _('<p><b>Failed to convert: %s')%title
                 msg += '<p>'+_('''
-                Many older ebook reader devices are incapable of displaying
+                Many older e-book reader devices are incapable of displaying
                 EPUB files that have internal components over a certain size.
                 Therefore, when converting to EPUB, calibre automatically tries
                 to split up the EPUB into smaller sized pieces.  For some
@@ -784,7 +784,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
                 maximum split size under EPUB Output in the conversion dialog,
                 or by turning on Heuristic Processing, also in the conversion
                 dialog. Note that if you make the maximum split size too large,
-                your ebook reader may have trouble with the EPUB.
+                your e-book reader may have trouble with the EPUB.
                         ''')
                 if not minz:
                     d = error_dialog(self, _('Conversion Failed'), msg,
@@ -801,7 +801,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
                     idx = job.details.index('calibre.ebooks.mobi.reader.mobi6.KFXError:')
                     msg += '<p>' + re.sub(r'(https:\S+)', r'<a href="\1">{}</a>'.format(_('here')),
                                           job.details[idx:].partition(':')[2].strip())
-                    d = error_dialog(self, _('Conversion Failed'), msg, det_msg=job.details)
+                    d = error_dialog(self, _('Conversion failed'), msg, det_msg=job.details)
                     d.setModal(False)
                     d.show()
                     self._modeless_dialogs.append(d)
@@ -891,7 +891,7 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
 
         if self.proceed_question.questions:
             msg = _('There are library updates waiting. Are you sure you want to quit?')
-            if not question_dialog(self, _('Library Updates Waiting'), msg):
+            if not question_dialog(self, _('Library updates waiting'), msg):
                 return False
 
         from calibre.db.delete_service import has_jobs
@@ -961,11 +961,11 @@ class Main(MainWindow, MainWindowMixin, DeviceMixin, EmailMixin,  # {{{
         try:
             try:
                 if self.content_server is not None:
-                    # If the content server has any sockets being closed then
+                    # If the Content server has any sockets being closed then
                     # this can take quite a long time (minutes). Tell the user that it is
                     # happening.
                     self.show_shutdown_message(
-                        _('Shutting down the content server. This could take a while ...'))
+                        _('Shutting down the Content server. This could take a while...'))
                     s = self.content_server
                     self.content_server = None
                     s.exit()

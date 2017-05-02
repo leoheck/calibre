@@ -1,6 +1,6 @@
 .. _plugins:
 
-API Documentation for plugins
+API documentation for plugins
 ===============================
 
 .. module:: calibre.customize
@@ -87,7 +87,7 @@ Conversion plugins
    :members:
    :member-order: bysource
 
-Device Drivers
+Device drivers
 -----------------
 
 .. module:: calibre.devices.interface
@@ -168,7 +168,7 @@ If you are adding your own plugin in a zip file, you should subclass both Interf
    :member-order: bysource
 
 
-Preferences Plugins
+Preferences plugins
 --------------------------
 
 .. autoclass:: calibre.customize.PreferencesPlugin
